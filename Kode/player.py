@@ -10,6 +10,8 @@ class player(QMainWindow):
     '''
     def __init__(self):
         super().__init__()
+        self.controller = game.gameController()
+        
         pass
     
     def closeEvent(self, a0=0):
