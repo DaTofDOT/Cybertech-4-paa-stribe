@@ -25,6 +25,7 @@ class startPopUp(QMainWindow):
         self.label=QLabel()
         self.label.setText("Select button")
         self.txtEditor = QTextEdit()
+        self.txtEditor.setFixedHeight(50)
         self.bHost, self.bJoin = QPushButton(), QPushButton()
         
         layout = QGridLayout()
