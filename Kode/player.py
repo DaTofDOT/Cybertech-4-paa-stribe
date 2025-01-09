@@ -41,10 +41,14 @@ class player(QMainWindow):
         main_layout.addWidget(self.info_label)
         main_layout.addLayout(grid)
         central.setLayout(main_layout)
+        
+        
+        
+        self.show()
+        self.controller=game.gameController()
 
-
-        def handle_button_click(idx):
-            pass
+    def handle_button_click(idx):
+        pass
     
     def closeEvent(self, a0=0):
         
