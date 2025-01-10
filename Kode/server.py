@@ -12,8 +12,12 @@ class host():
         self.listeningSocket.listen()
         
         #TODO find min IP
-        self.myIP = "127.0.0.1"
-        
+        #temp = s.socket(s.AF_INET, s.SOCK_DGRAM)
+        #temp.connect(("8.8.8.8", 80))
+        #self.myIP = str(temp.getsockname()[0])
+        #temp.close()
+        self.myIP =s.gethostbyname(s.gethostname())
+
         t = Thread(target=self.run)
         t.start()
                 
@@ -59,11 +63,17 @@ class serverGame():
         p1 , p2 = players
         try:
             self.p1Con = playerConnection.connection(p1, self.receivedNewMessage)
-            self.p2Con = playerConnection.connection(p2, self.receivedNewMessage)
             self.p1Con.send("YOU ARE 1")
+        except:
+            print("player1 virker ikke")
+            
+        try:
+            self.p2Con = playerConnection.connection(p2, self.receivedNewMessage)
             self.p2Con.send("YOU ARE 2")
         except:
-            pass
+            print("player2 virker ikke")
+            
+
         self.board = "0"*42
         self.currentTurn = random.randrange(1,3) # tilfældigt 1 eller 2
         self.newestPieceIndex = -1

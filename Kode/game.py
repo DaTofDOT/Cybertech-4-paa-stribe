@@ -67,11 +67,12 @@ class startPopUp(QMainWindow):
     
     def hostHandler(self):
         if self.p.localServerExists:
-            #ip til UI
             pass
         else:
             self.p.createServer()
-            #IP til UI
+        
+        self.txtEditor.setText(self.p.server.myIP)
+        
         socket = s.socket(s.AF_INET, s.SOCK_STREAM)
         socket.connect(("127.0.0.1", 54321))
         self.p.setpCon(playerConnection.connection(socket, self.p.receiveData)) 
@@ -80,9 +81,16 @@ class startPopUp(QMainWindow):
         if self.p.localServerExists:
             self.p.server.closeMe()
             self.p.localServerExists = False
+        
+        #hæntIP fra UI
+        
+        chosenIP=self.txtEditor.toPlainText()
+        if chosenIP == "":
+            chosenIP = "127.0.0.1"
+        
         try:
             socket = s.socket(s.AF_INET, s.SOCK_STREAM)
-            socket.connect(("127.0.0.1", 54321))
+            socket.connect((chosenIP, 54321))
             self.p.setpCon(playerConnection.connection(socket, self.p.receiveData))
         except:
             print("dosent exist")  
