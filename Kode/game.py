@@ -13,21 +13,27 @@ class gameController():
         self.localServerExists = False
         self.popUp = startPopUp(self)
         self.popUp.show()
+        self.popUpExists = True
+        self.setpCon("")
     
     def receiveData(self, sender, receivedStr:str):
         print("Modtaget"+receivedStr+"!")
         
     def closeMe(self):
-        self.pCon.closeMe()
+        if self.pCon != "":
+            self.pCon.closeMe()
         if self.localServerExists:
             self.server.closeMe()
+        if self.popUpExists:
+            self.popUp.closeMe()
             
     def createServer(self):
         self.server = server.host()
         self.localServerExists = True
         
     def send(self, string:str):
-        self.pCon.send(string) 
+        if self.pCon != "":
+            self.pCon.send(string) 
     
     def setpCon(self, var):
         self.pCon = var
@@ -82,6 +88,6 @@ class startPopUp(QMainWindow):
             print("dosent exist")  
     
     def closeMe(self):
-        
+        self.p.popUpExists=False
         super().close()
         
