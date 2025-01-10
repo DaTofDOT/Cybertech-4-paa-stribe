@@ -1,4 +1,4 @@
-import game
+import game, calculateBoard
 
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtWidgets import *
@@ -19,12 +19,22 @@ class player(QMainWindow):
         # UI
         self.setMinimumSize(600, 400) # min size
         self.setWindowTitle("4-paa-stribe") # window title
+
+        # 1 title
         self.info_label = QLabel("4-paa-stribe") # info label
         self.info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.info_label.setFont(info_font)
         self.info_label.setMaximumHeight(100)
+        # 2 (debug)
+        self.debug_label = QLabel("Debug") # info label
+        # self.debug_label.setFont(info_font)
+        self.debug_label.setMaximumHeight(100)
 
-        
+        # info bar
+        self.info_bar_top = QHBoxLayout()
+        self.info_bar_top.addWidget(self.info_label, 7)
+        self.info_bar_top.addWidget(self.debug_label, 3)
+
         # test
         self.board = "0" * 42
         self.turn = 1
@@ -42,7 +52,7 @@ class player(QMainWindow):
             btn.clicked.connect(lambda _, idx=i: self.handle_button_click(idx))
 
         main_layout = QVBoxLayout()
-        main_layout.addWidget(self.info_label)
+        main_layout.addLayout(self.info_bar_top)
         main_layout.addLayout(grid)
         central.setLayout(main_layout)
         
@@ -53,27 +63,43 @@ class player(QMainWindow):
     def resizeEvent(self, event):
         # Ensure buttons resize properly during window resize
         self.updateGeometry()  # Force the layout to update and recheck button sizes
+        self.update_board(self.board)
         super().resizeEvent(event)
 
     def handle_button_click(self, idx):
         print(f"Button {idx} clicked (row: {1 + idx // 7}, cln: {1 + idx % 7})")
-        self.board = self.board[:idx] + str(self.turn) + self.board[idx + 1:]
-        self.turn = 2 if self.turn == 1 else 1
 
+        # Update the board
+        self.control_msg, self.turn, self.board, self.newestPieceIndex = calculateBoard.play_move(self.board, (idx % 7), self.turn)
+        print(self.control_msg, self.turn, self.board, self.newestPieceIndex)
+        self.debug_label.setText(f"Control: {self.control_msg}\nTurn: {self.turn}\nBoard: {self.board}\nNewest piece index: {self.newestPieceIndex}")
         self.update_board(self.board)
         # return (idx % 7) to the server
 
 
     def update_board(self, board):
-        print("update board")
-        print(board)
         for i in range(42):
+            button_size = self.btns[i].size()
+            icon_size = QSize(int(button_size.height() * 0.75), int(button_size.height() * 0.75))
+            try:
+                if i == self.newestPieceIndex:
+                    self.btns[i].setStyleSheet("background-color: white")
+                else:
+                    self.btns[i].setStyleSheet("")
+            except:
+                pass
+            
             if board[i] == "0":
-                self.btns[i].setText("")
-            elif board[i] == "1":
-                self.btns[i].setText("X")
+                self.btns[i].setText("")  # Clear text if the cell is empty
+                self.btns[i].setIcon(QIcon())  # Remove icon if no piece
+            if board[i] == "1":
+                self.btns[i].setText("")  # Clear text for consistency
+                self.btns[i].setIcon(QIcon("./assets/RedCircle.png"))  # Red circle icon
+                self.btns[i].setIconSize(QSize(icon_size))  # Set icon size
             elif board[i] == "2":
-                self.btns[i].setText("O")
+                self.btns[i].setText("")  # Clear text for consistency
+                self.btns[i].setIcon(QIcon("./assets/YellowCircle.png"))  # Yellow circle icon
+                self.btns[i].setIconSize(QSize(icon_size))  # Set icon size)
             
 
     def closeEvent(self, a0=0):
@@ -81,8 +107,10 @@ class player(QMainWindow):
         self.close()
     
 
-class SquareButton(QPushButton):
+class SquareButton(QPushButton): 
+    
     def sizeHint(self) -> QSize:
         size = super().sizeHint()
         return QSize(min(size.width(), size.height()), min(size.width(), size.height()))
 
+    
