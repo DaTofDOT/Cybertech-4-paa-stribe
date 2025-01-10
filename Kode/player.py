@@ -25,17 +25,21 @@ class player(QMainWindow):
         self.info_label.setMaximumHeight(100)
 
         
-
-
+        # test
+        self.board = "0" * 42
+        self.turn = 1
 
         
 
         # Game board
-        self.btns = [QPushButton() for _ in range(42)]
+        self.btns = [SquareButton() for _ in range(42)]
         grid = QGridLayout()
+        grid.setContentsMargins(0, 0, 0, 0)  # Remove any margins
+        grid.setSpacing(0)  # Set spacing between buttons to 0
         for i, btn in enumerate(self.btns):
-            grid.addWidget(btn, i // 7, i % 7)
-            btn.clicked.connect(lambda _, idx=i+1: self.handle_button_click(idx))
+            grid.addWidget(btn, i // 7, i % 7)  # Arrange buttons in a 7-column grid
+            btn.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)  # Make the button expand
+            btn.clicked.connect(lambda _, idx=i: self.handle_button_click(idx))
 
         main_layout = QVBoxLayout()
         main_layout.addWidget(self.info_label)
@@ -43,13 +47,42 @@ class player(QMainWindow):
         central.setLayout(main_layout)
         
         
-        
         self.show()
         self.controller=game.gameController()
-
-    def handle_button_click(idx):
-        pass
     
+    def resizeEvent(self, event):
+        # Ensure buttons resize properly during window resize
+        self.updateGeometry()  # Force the layout to update and recheck button sizes
+        super().resizeEvent(event)
+
+    def handle_button_click(self, idx):
+        print(f"Button {idx} clicked (row: {1 + idx // 7}, cln: {1 + idx % 7})")
+        self.board = self.board[:idx] + str(self.turn) + self.board[idx + 1:]
+        self.turn = 2 if self.turn == 1 else 1
+
+        self.update_board(self.board)
+        # return (idx % 7) to the server
+
+
+    def update_board(self, board):
+        print("update board")
+        print(board)
+        for i in range(42):
+            if board[i] == "0":
+                self.btns[i].setText("")
+            elif board[i] == "1":
+                self.btns[i].setText("X")
+            elif board[i] == "2":
+                self.btns[i].setText("O")
+            
+
     def closeEvent(self, a0=0):
         
         self.close()
+    
+
+class SquareButton(QPushButton):
+    def sizeHint(self) -> QSize:
+        size = super().sizeHint()
+        return QSize(min(size.width(), size.height()), min(size.width(), size.height()))
+
