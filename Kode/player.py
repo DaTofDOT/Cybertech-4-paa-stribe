@@ -55,12 +55,13 @@ class player(QMainWindow):
         self.updateGeometry()  # Force the layout to update and recheck button sizes
         super().resizeEvent(event)
 
-    def handle_button_click(self, idx):
+    def handle_button_click(self, idx:int):
         print(f"Button {idx} clicked (row: {1 + idx // 7}, cln: {1 + idx % 7})")
         self.board = self.board[:idx] + str(self.turn) + self.board[idx + 1:]
         self.turn = 2 if self.turn == 1 else 1
 
         self.update_board(self.board)
+        self.controller.send(str(idx))
         # return (idx % 7) to the server
 
 
@@ -77,7 +78,7 @@ class player(QMainWindow):
             
 
     def closeEvent(self, a0=0):
-        
+        self.controller.closeMe()
         self.close()
     
 

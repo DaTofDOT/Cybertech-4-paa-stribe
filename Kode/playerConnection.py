@@ -12,16 +12,28 @@ class connection():
     def receiveRun(self):
         self.keepAlive = True
         while self.keepAlive:
-            receivedData = self.connection.recv(1024)
-            if receivedData == b'': #connection closed from the other side
+            try:
+                receivedData = self.connection.recv(1024)
+            except:
+                receivedData = b''
+                
+            if receivedData == b'' or receivedData == "PLZ LUK FORBINDELSE".encode(): #connection closed from the other side
                 self.connection.close()
                 self.keepAlive = False
-            self.receiveFunction(self, receivedData.decode())
+            else:
+                self.receiveFunction(self, receivedData.decode())
     
     def send(self, data:str):
-        self.connection.sendall(data.encode())
+        
+        try:
+            self.connection.sendall(data.encode())
+            print("sendte dette data: "+ data+" :")
+        except:
+            print("sendte IKKE dette data: "+ data+" :")
     
     def closeMe(self):
         self.keepAlive = False
-        self.connection.close() # may course crash
+        self.send("PLZ-LUK-FORBINDELSE")
+
+        #self.connection.close() # may course crash
     

@@ -1,4 +1,5 @@
 import playerConnection, server
+import socket as s
 
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtWidgets import *
@@ -9,14 +10,31 @@ class gameController():
     og opretter evt. host og playerConnection
     '''
     def __init__(self):
+        self.localServerExists = False
         self.popUp = startPopUp(self)
         self.popUp.show()
+    
+    def receiveData(self, sender, receivedStr:str):
+        print("Modtaget"+receivedStr+"!")
         
+    def closeMe(self):
+        self.pCon.closeMe()
+        if self.localServerExists:
+            self.server.closeMe()
+            
+    def createServer(self):
+        self.server = server.host()
+        self.localServerExists = True
+        
+    def send(self, string:str):
+        self.pCon.send(string) 
+    
+    def setpCon(self, var):
+        self.pCon = var
 
 class startPopUp(QMainWindow):
-    def __init__(self, p):
-        self.parent=p
-        
+    def __init__(self, p:gameController):
+        self.p=p
         super().__init__()
         central = QWidget(self)
         self.setCentralWidget(central)
@@ -27,6 +45,11 @@ class startPopUp(QMainWindow):
         self.txtEditor = QTextEdit()
         self.txtEditor.setFixedHeight(50)
         self.bHost, self.bJoin = QPushButton(), QPushButton()
+        self.bHost.clicked.connect(self.hostHandler)
+        self.bJoin.clicked.connect(self.joinHandler)
+        self.bHost.setText("Host")
+        self.bJoin.setText("Join")
+        
         
         layout = QGridLayout()
         layout.addWidget(self.bHost, 0,0)
@@ -37,8 +60,28 @@ class startPopUp(QMainWindow):
         self.setBaseSize(QSize(800, 600))
     
     def hostHandler(self):
-        pass
-        
+        if self.p.localServerExists:
+            #ip til UI
+            pass
+        else:
+            self.p.createServer()
+            #IP til UI
+        socket = s.socket(s.AF_INET, s.SOCK_STREAM)
+        socket.connect(("127.0.0.1", 54321))
+        self.p.setpCon(playerConnection.connection(socket, self.p.receiveData)) 
+               
     def joinHandler(self):
-        pass
+        if self.p.localServerExists:
+            self.p.server.closeMe()
+            self.p.localServerExists = False
+        try:
+            socket = s.socket(s.AF_INET, s.SOCK_STREAM)
+            socket.connect(("127.0.0.1", 54321))
+            self.p.setpCon(playerConnection.connection(socket, self.p.receiveData))
+        except:
+            print("dosent exist")  
+    
+    def closeMe(self):
+        
+        super().close()
         

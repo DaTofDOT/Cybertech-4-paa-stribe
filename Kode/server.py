@@ -25,9 +25,9 @@ class host():
         self.currentConnections = []
         self.ongoingGames = []
         
-        
         while self.keepAlive:
             newTCPconn, addr = self.listeningSocket.accept()#blokere indtil ny forbindelse
+            print("newConection To server")
             newTCPconn.sendall(("WELCOME TO 4-IN-A-ROW @ "+self.myIP).encode())
             self.currentConnections.append(newTCPconn)
             if len(self.currentConnections) >= 2:
@@ -38,15 +38,15 @@ class host():
     def closeMe(self):
         self.keepAlive = False
         tempSocket = s.socket(s.AF_INET, s.SOCK_STREAM)
-        tempSocket.bind(("127.0.0.1", self.port))
+        tempSocket.connect(("127.0.0.1", self.port))
         tempSocket.close()
         self.listeningSocket.close()
         time.sleep(0.02)
         originalLen=(len(self.ongoingGames))
-        for i in originalLen:
+        for i in range(originalLen):
             self.ongoingGames[0].closeMe()
         originalLen=(len(self.currentConnections))
-        for i in originalLen:
+        for i in range(originalLen):
             self.currentConnections[i].close()
         
         
@@ -57,11 +57,14 @@ class serverGame():
         self.overServer = p
         
         p1 , p2 = players
-        self.p1Con = playerConnection.connection(p1, self.receivedNewMessage)
-        self.p2Con = playerConnection.connection(p2, self.receivedNewMessage)
-        self.p1Con.send("YOU ARE 1")
-        self.p2Con.send("YOU ARE 2")
-        self.board = "."*42
+        try:
+            self.p1Con = playerConnection.connection(p1, self.receivedNewMessage)
+            self.p2Con = playerConnection.connection(p2, self.receivedNewMessage)
+            self.p1Con.send("YOU ARE 1")
+            self.p2Con.send("YOU ARE 2")
+        except:
+            pass
+        self.board = "0"*42
         self.currentTurn = random.randrange(1,3) # tilfældigt 1 eller 2
         self.newestPieceIndex = -1
         '''
@@ -91,6 +94,9 @@ class serverGame():
         
     def closeMe(self):
         self.keepAlive = False
+        message = "NOBODY WINS\n\r"+str(self.currentTurn)+"\n\r"+self.board+"\n\r"+str(self.newestPieceIndex)
+        
+        
         self.p1Con.closeMe() #not final !!!
-        self.p2Con.closeMe() # not final !!!
+        self.p2Con.closeMe() #not final !!!
         self.overServer.removeMeFromOngoingGames(self)
