@@ -35,9 +35,9 @@ class player(QMainWindow):
         self.info_bar_top.addWidget(self.info_label, 7)
         self.info_bar_top.addWidget(self.debug_label, 3)
 
-        # test
         self.board = "0" * 42
-        self.turn = 1
+        self.calculate_board = calculateBoard.calculateBoard()
+
 
         
 
@@ -70,7 +70,7 @@ class player(QMainWindow):
         print(f"Button {idx} clicked (row: {1 + idx // 7}, cln: {1 + idx % 7})")
 
         # Update the board
-        self.control_msg, self.turn, self.board, self.newestPieceIndex = calculateBoard.play_move(self.board, (idx % 7), self.turn)
+        self.control_msg, self.turn, self.board, self.newestPieceIndex = self.calculate_board.play_move((idx % 7))
         print(self.control_msg, self.turn, self.board, self.newestPieceIndex)
         self.debug_label.setText(f"Control: {self.control_msg}\nTurn: {self.turn}\nBoard: {self.board}\nNewest piece index: {self.newestPieceIndex}")
         self.update_board(self.board)

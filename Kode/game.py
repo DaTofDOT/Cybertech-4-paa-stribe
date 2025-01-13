@@ -76,7 +76,7 @@ class startPopUp(QMainWindow):
         socket = s.socket(s.AF_INET, s.SOCK_STREAM)
         socket.connect(("127.0.0.1", 54321))
         self.p.setpCon(playerConnection.connection(socket, self.p.receiveData)) 
-               
+
     def joinHandler(self):
         if self.p.localServerExists:
             self.p.server.closeMe()
