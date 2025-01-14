@@ -18,7 +18,7 @@ class player(QMainWindow):
         self.winStats = gamesLogger()
         
         # font
-        info_font = QFont("Lucida Sans Typewriter", 18  , QFont.Weight.Bold)
+        info_font = QFont("Lucida Sans Typewriter", 24  , QFont.Weight.Bold)
         stat_font = QFont("Lucida Sans Typewriter", 12  , QFont.Weight.Bold)
         # UI
         self.setMinimumSize(600, 400) # min size
@@ -34,7 +34,7 @@ class player(QMainWindow):
         self.stat_info_label = QLabel("Total Games:\nWins:\nLosses:\nDraws:")
         self.stat_info_label.setFont(stat_font)
         self.stat_info_label.setMaximumHeight(100)
-        self.stats_label = QLabel(f"{self.winStats.total_games}\n{self.winStats.wins}\n{self.winStats.loses}\n{self.winStats.draws}")
+        self.stats_label = QLabel(f"{self.winStats.total_games}\n{self.winStats.wins}\n{self.winStats.losses}\n{self.winStats.draws}")
         self.stats_label.setFont(stat_font)
         self.stats_label.setMaximumHeight(100)
         # self.debug_label = QLabel("Debug") # info label
@@ -49,8 +49,6 @@ class player(QMainWindow):
 
         self.calculate_board = calculateBoard.calculateBoard()
 
-
-        
 
         # Game board
         self.btns = [SquareButton() for _ in range(42)]
@@ -103,6 +101,7 @@ class player(QMainWindow):
             self.control_msg = str(lines)
         
         self.update_board()
+        self.update_turn_info()
         
         if "WINS" in self.control_msg:
             self.controller.setpCon("")
@@ -134,8 +133,22 @@ class player(QMainWindow):
             elif self.board[i] == "2":
                 self.btns[i].setText("")  # Clear text for consistency
                 self.btns[i].setIcon(QIcon(os.path.join(".","assets","YellowCircle.png")))  # Yellow circle icon
-                self.btns[i].setIconSize(QSize(icon_size))  # Set icon size)
+                self.btns[i].setIconSize(QSize(icon_size))  # Set icon size
             
+    def update_turn_info(self):
+        if self.playerIs == "1":
+            img_path = os.path.join(".", "assets", "RedCircle.png")
+        elif self.playerIs == "2":
+            img_path = os.path.join(".", "assets", "YellowCircle.png")
+
+        if self.turn == self.playerIs:
+            turn_text = "Your Turn"
+        else:
+            turn_text = "Opponent's Turn"
+        
+        # Update QLabel with HTML content
+        self.info_label.setText(f"<p>You are <img src='{img_path}' width='24' height='24'><br>{turn_text}</p>")
+        
 
     def closeEvent(self, a0=0):
         self.controller.closeMe()
@@ -167,6 +180,8 @@ class player(QMainWindow):
             win_text = "You lose! :("
             msg_box.setIcon(QMessageBox.Icon.Critical)
         
+        self.stats_label.setText(f"{self.winStats.total_games}\n{self.winStats.wins}\n{self.winStats.losses}\n{self.winStats.draws}")
+
         msg_box.setWindowIcon(QIcon(os.path.join(".","assets","Logo.png")))
         msg_box.setWindowTitle(win_text)
         msg_box.setText(win_text + "\nNew game?")
@@ -216,7 +231,7 @@ class gamesLogger():
             self.draws = int(txtFil.readline().strip())
         except:
             self.draws = 0
-        self.total_games = self.wins + self.loses + self.draws
+        self.total_games = self.wins + self.losses + self.draws
         txtFil.close()
     
     
