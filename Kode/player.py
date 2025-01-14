@@ -19,11 +19,13 @@ class player(QMainWindow):
         # font
         info_font = QFont("Lucida Sans Typewriter", 24  , QFont.Weight.Bold)
         # UI
+        self.title = "FOUR! in one Row (or Diagonal(or Column))"
         self.setMinimumSize(600, 400) # min size
-        self.setWindowTitle("4-paa-stribe") # window title
+        self.setWindowTitle(self.title) # window title
 
         # 1 title
-        self.info_label = QLabel("FOUR! in one Row (or Diagonal)") # info label
+        self.setWindowIcon(QIcon(os.path.join(".","Data","Logo.png")))
+        self.info_label = QLabel(self.title) # info label
         # self.info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.info_label.setFont(info_font)
         self.info_label.setMaximumHeight(100)
@@ -38,6 +40,7 @@ class player(QMainWindow):
         self.info_bar_top.addWidget(self.debug_label, 3)
 
         self.board = "0" * 42
+        self.newestPieceIndex = -1
         self.calculate_board = calculateBoard.calculateBoard()
 
 
@@ -100,10 +103,11 @@ class player(QMainWindow):
             button_size = self.btns[i].size()
             icon_size = QSize(int(button_size.height() * 0.75), int(button_size.height() * 0.75))
             try:
-                if i == self.newestPieceIndex:
-                    self.btns[i].setStyleSheet("background-color: green")
-                else:
-                    self.btns[i].setStyleSheet("")
+                if self.newestPieceIndex != -1:
+                    if i == self.newestPieceIndex:
+                        self.btns[i].setStyleSheet("background-color: green")
+                    else:
+                        self.btns[i].setStyleSheet("")
             except:
                 pass
             
@@ -152,7 +156,7 @@ class player(QMainWindow):
         
         msg_box.setWindowTitle(win_text)
         msg_box.setText(win_text + "\nNew game?")
-        msg_box.exec_()
+        msg_box.exec()
 
 
         if msg_box.clickedButton() == play_again_button:
