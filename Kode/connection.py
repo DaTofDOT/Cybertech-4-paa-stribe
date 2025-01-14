@@ -37,4 +37,3 @@ class connection():
         if self.keepAlive:
             self.keepAlive = False
             self.send("PLZ-LUK-FORBINDELSE")
-    
