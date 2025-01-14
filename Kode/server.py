@@ -3,7 +3,7 @@ import socket as s
 import time
 import calculateBoard
 
-import playerConnection
+import connection
 
 class host():
     def __init__(self, port = 54321):
@@ -115,8 +115,8 @@ class serverGame():
         p1 , p2 = players
 
 
-        self.p1Con = playerConnection.connection(p1, self.receivedNewMessage, self.connectionCloseFunction)
-        self.p2Con = playerConnection.connection(p2, self.receivedNewMessage, self.connectionCloseFunction)
+        self.p1Con = connection.connection(p1, self.receivedNewMessage, self.connectionCloseFunction)
+        self.p2Con = connection.connection(p2, self.receivedNewMessage, self.connectionCloseFunction)
   
         self.p1Con.send("YOU ARE 1\n\r")  
         self.p2Con.send("YOU ARE 2\n\r")
@@ -133,7 +133,7 @@ class serverGame():
         if self.keepAlive:
             self.closeMe()
     
-    def receivedNewMessage(self, sender:playerConnection.connection, message:str):
+    def receivedNewMessage(self, sender:connection.connection, message:str):
         if ((sender == self.p1Con and self.gameTracker.player_num == 1) or 
             (sender == self.p2Con and self.gameTracker.player_num == 2 )):
             try:

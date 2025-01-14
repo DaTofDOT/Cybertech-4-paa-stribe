@@ -1,4 +1,4 @@
-import playerConnection, server
+import connection, server
 import socket as s
 
 
@@ -94,7 +94,7 @@ class startPopUp(QMainWindow):
             self.p.createServer()
             socket = s.socket(s.AF_INET, s.SOCK_STREAM)
             socket.connect(("127.0.0.1", 54321))
-            self.p.setpCon(playerConnection.connection(socket, self.p.receiveData)) 
+            self.p.setpCon(connection.connection(socket, self.p.receiveData)) 
             self.label.setText("Local server created, awaiting player 2")
         
         self.txtEditor.setText(self.p.server.myIP)
@@ -117,7 +117,7 @@ class startPopUp(QMainWindow):
         try:
             socket = s.socket(s.AF_INET, s.SOCK_STREAM)
             socket.connect((chosenIP, 54321))
-            self.p.setpCon(playerConnection.connection(socket, self.p.receiveData))
+            self.p.setpCon(connection.connection(socket, self.p.receiveData))
         except:
             self.label.setText("The server at the chosen IP dosen't exist")
             print("dosent exist")  
