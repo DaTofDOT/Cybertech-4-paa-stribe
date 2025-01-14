@@ -3,6 +3,8 @@ import socket as s
 
 
 from PyQt6.QtCore import Qt, QSize, pyqtSignal
+from PyQt6.QtGui import QIcon
+import os
 from PyQt6.QtWidgets import *
 
 class gameController(QWidget):
@@ -66,6 +68,7 @@ class startPopUp(QMainWindow):
         central = QWidget(self)
         self.setCentralWidget(central)
         self.setWindowTitle("Start-spil")
+        self.setWindowIcon(QIcon(os.path.join(".","assets","Logo.png")))
         
         self.label=QLabel()
         self.label.setText("Select button")

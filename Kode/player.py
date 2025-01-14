@@ -24,7 +24,7 @@ class player(QMainWindow):
         self.setWindowTitle(self.title) # window title
 
         # 1 title
-        self.setWindowIcon(QIcon(os.path.join(".","Data","Logo.png")))
+        self.setWindowIcon(QIcon(os.path.join(".","assets","Logo.png")))
         self.info_label = QLabel(self.title) # info label
         # self.info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.info_label.setFont(info_font)
@@ -154,6 +154,7 @@ class player(QMainWindow):
             win_text = "You lose!"
             msg_box.setIcon(QMessageBox.Icon.Critical)
         
+        msg_box.setWindowIcon(QIcon(os.path.join(".","assets","Logo.png")))
         msg_box.setWindowTitle(win_text)
         msg_box.setText(win_text + "\nNew game?")
         msg_box.exec()
