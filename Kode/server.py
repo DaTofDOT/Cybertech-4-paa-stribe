@@ -32,7 +32,7 @@ class host():
         
         while self.keepAlive:
             newTCPconn, addr = self.listeningSocket.accept()#blokere indtil ny forbindelse
-            print("newConection To server")
+            print("new connection To server")
             newTCPconn.sendall(("WELCOME TO 4-IN-A-ROW @ "+self.myIP).encode())
             self.currentConnections.append(newTCPconn)
             if len(self.currentConnections) >= 2:

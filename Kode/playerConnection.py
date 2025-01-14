@@ -28,9 +28,10 @@ class connection():
     def send(self, data:str):
         try:
             self.connection.sendall(data.encode())
-            print("sendte dette data: "+ data+" :")
+            #print("sendte dette data: "+ data+" :")
         except:
-            print("sendte IKKE dette data: "+ data+" :")
+            #print("sendte IKKE dette data: "+ data+" :")
+            pass
     
     def closeMe(self):
         if self.keepAlive:

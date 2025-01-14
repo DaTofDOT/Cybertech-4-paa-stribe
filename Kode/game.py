@@ -15,16 +15,14 @@ class gameController(QWidget):
         super().__init__()
         self.p=p
         self.localServerExists = False
-        self.popUp = startPopUp(self)
-        self.popUp.show()
-        self.popUpExists = True
-        self.pCon, self.lines = "", []
         self.newServerDataSignal.connect(self.p.newDataFromServer)
+        self.newGame()
     
     def receiveData(self, sender, receivedStr:str):
         #print("Modtaget"+receivedStr+"!")
         if "YOU ARE" in receivedStr:
             self.p.playerIs = receivedStr[8] #should be either "1" or "2"
+            self.popUp.closeMe()
             
         elif "@" in receivedStr:
             pass
@@ -35,8 +33,11 @@ class gameController(QWidget):
             self.lines = receivedStr.split()
             self.newServerDataSignal.emit(self.lines)
         
-
-            
+    def newGame(self):
+        self.popUp = startPopUp(self)
+        self.popUp.show()
+        self.popUpExists = True
+        self.pCon, self.lines = "", []     
         
     def closeMe(self):
         if self.pCon != "":
