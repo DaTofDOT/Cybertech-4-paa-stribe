@@ -22,12 +22,15 @@ class gameController(QWidget):
         self.newServerDataSignal.connect(self.p.newDataFromServer)
     
     def receiveData(self, sender, receivedStr:str):
-        print("Modtaget"+receivedStr+"!")
+        #print("Modtaget"+receivedStr+"!")
         if "YOU ARE" in receivedStr:
             self.p.playerIs = receivedStr[8] #should be either "1" or "2"
+            
         elif "@" in receivedStr:
             pass
-            #modtaget serverrens velkommen besked med ip 
+            #modtaget serverens velkommen besked med ip 
+        elif "WINS" in receivedStr:
+            pass
         else:
             self.lines = receivedStr.split()
             self.newServerDataSignal.emit(self.lines)
@@ -104,9 +107,11 @@ class startPopUp(QMainWindow):
             self.p.localServerExists = False
         
         chosenIP=self.txtEditor.toPlainText()
+
         if chosenIP == "":
             chosenIP = "127.0.0.1"
             self.txtEditor.setText("127.0.0.1")
+            
         
         try:
             socket = s.socket(s.AF_INET, s.SOCK_STREAM)

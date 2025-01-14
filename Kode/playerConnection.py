@@ -33,8 +33,7 @@ class connection():
             print("sendte IKKE dette data: "+ data+" :")
     
     def closeMe(self):
-        self.keepAlive = False
-        self.send("PLZ-LUK-FORBINDELSE")
-
-        #self.connection.close() # may course crash
+        if self.keepAlive:
+            self.keepAlive = False
+            self.send("PLZ-LUK-FORBINDELSE")
     

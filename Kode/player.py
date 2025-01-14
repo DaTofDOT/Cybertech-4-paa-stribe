@@ -1,4 +1,4 @@
-import game, calculateBoard
+import game, calculateBoard, os
 
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtWidgets import *
@@ -14,6 +14,8 @@ class player(QMainWindow):
         central = QWidget(self)
         self.setCentralWidget(central)
         self.control_msg, self.turn, self.board, self.newestPieceIndex, self.playerIs = 0,0,0,0,0
+        self.winStats = gamesLogger()
+        
         # font
         info_font = QFont("Lucida Sans Typewriter", 18, QFont.Weight.Bold)
         # UI
@@ -67,17 +69,15 @@ class player(QMainWindow):
         super().resizeEvent(event)
 
     def handle_button_click(self, idx:int):
-        print(f"Button {idx} clicked (row: {1 + idx // 7}, cln: {1 + idx % 7})")
+        #print(f"Button {idx} clicked (row: {1 + idx // 7}, cln: {1 + idx % 7})")
 
-        
-        
         # Update the board
         #self.control_msg, self.turn, self.board, self.newestPieceIndex = self.calculate_board.play_move((idx % 7))
         #print(self.control_msg, self.turn, self.board, self.newestPieceIndex)
         #self.debug_label.setText(f"Control: {self.control_msg}\nTurn: {self.turn}\nBoard: {self.board}\nNewest piece index: {self.newestPieceIndex}")
         #self.update_board(self.board)
-        self.controller.send(str(idx % 7))
-        # return (idx % 7) to the server
+        self.controller.send(str(idx % 7)) # return (idx % 7) to the server
+        
     def newDataFromServer(self, signalValue = ""):
         lines = signalValue
         if len(lines) >= 4:
@@ -101,7 +101,7 @@ class player(QMainWindow):
             icon_size = QSize(int(button_size.height() * 0.75), int(button_size.height() * 0.75))
             try:
                 if i == self.newestPieceIndex:
-                    self.btns[i].setStyleSheet("background-color: white")
+                    self.btns[i].setStyleSheet("background-color: green")
                 else:
                     self.btns[i].setStyleSheet("")
             except:
@@ -112,11 +112,11 @@ class player(QMainWindow):
                 self.btns[i].setIcon(QIcon())  # Remove icon if no piece
             if board[i] == "1":
                 self.btns[i].setText("")  # Clear text for consistency
-                self.btns[i].setIcon(QIcon("./assets/RedCircle.png"))  # Red circle icon
+                self.btns[i].setIcon(QIcon(os.path.join(".","assets","RedCircle.png")))  # Red circle icon
                 self.btns[i].setIconSize(QSize(icon_size))  # Set icon size
             elif board[i] == "2":
                 self.btns[i].setText("")  # Clear text for consistency
-                self.btns[i].setIcon(QIcon("./assets/YellowCircle.png"))  # Yellow circle icon
+                self.btns[i].setIcon(QIcon(os.path.join(".","assets","YellowCircle.png")))  # Yellow circle icon
                 self.btns[i].setIconSize(QSize(icon_size))  # Set icon size)
             
 
@@ -131,4 +131,32 @@ class SquareButton(QPushButton):
         size = super().sizeHint()
         return QSize(min(size.width(), size.height()), min(size.width(), size.height()))
 
+class gamesLogger():
+    def __init__(self):
+        #test if file exists if not, create it. 
+        try:
+            txtFil = open(os.path.join(".","Data","winStats.txt"), "r")
+        except:
+            txtFil = open(os.path.join(".","Data","winStats.txt"), "w")
+            txtFil.writelines(("0", "0", "0"))
+            txtFil.close()
+            txtFil = open(os.path.join(".","Data","winStats.txt"), "r")
+              
+        try:
+            self.wins = int(txtFil.readline().strip())
+        except:
+            self.wins = 0
+        try:
+            self.loses = int(txtFil.readline().strip())
+        except:
+            self.loses = 0
+        try:
+            self.draws = int(txtFil.readline().strip())
+        except:
+            self.draws = 0
+        txtFil.close()
     
+    def saveData(self):
+        txtFil = open(os.path.join(".","Data","winStats.txt"), "w")
+        txtFil.writelines((str(self.wins), str(self.loses), str(self.draws)))
+        txtFil.close()
