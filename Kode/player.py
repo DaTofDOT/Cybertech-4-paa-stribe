@@ -17,14 +17,14 @@ class player(QMainWindow):
         self.winStats = gamesLogger()
         
         # font
-        info_font = QFont("Lucida Sans Typewriter", 18, QFont.Weight.Bold)
+        info_font = QFont("Lucida Sans Typewriter", 24  , QFont.Weight.Bold)
         # UI
         self.setMinimumSize(600, 400) # min size
         self.setWindowTitle("4-paa-stribe") # window title
 
         # 1 title
-        self.info_label = QLabel("4-paa-stribe") # info label
-        self.info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.info_label = QLabel("FOUR! in one Row (or Diagonal)") # info label
+        # self.info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.info_label.setFont(info_font)
         self.info_label.setMaximumHeight(100)
         # 2 (debug)
@@ -65,23 +65,23 @@ class player(QMainWindow):
     def resizeEvent(self, event):
         # Ensure buttons resize properly during window resize
         self.updateGeometry()  # Force the layout to update and recheck button sizes
-        self.update_board(self.board)
+        self.update_board()
         super().resizeEvent(event)
 
     def handle_button_click(self, idx:int):
         #print(f"Button {idx} clicked (row: {1 + idx // 7}, cln: {1 + idx % 7})")
+        self.controller.send(str(idx % 7))# return (idx % 7) to the server
 
         # Update the board
         #self.control_msg, self.turn, self.board, self.newestPieceIndex = self.calculate_board.play_move((idx % 7))
         #print(self.control_msg, self.turn, self.board, self.newestPieceIndex)
         #self.debug_label.setText(f"Control: {self.control_msg}\nTurn: {self.turn}\nBoard: {self.board}\nNewest piece index: {self.newestPieceIndex}")
         #self.update_board(self.board)
-        self.controller.send(str(idx % 7)) # return (idx % 7) to the server
         
     def newDataFromServer(self, signalValue = ""):
         lines = signalValue
         if len(lines) >= 4:
-            self.control_msg, self.board = lines[0].strip(),  lines[2].strip(), 
+            self.control_msg, self.board = lines[0].strip(),  lines[2].strip()
             try: 
                 self.turn  = int(lines[1].strip())
             except:
@@ -93,9 +93,9 @@ class player(QMainWindow):
         else:
             self.control_msg = str(lines)
         self.debug_label.setText(f"Control: {self.control_msg}\nTurn: {self.turn}\nBoard: {self.board}\nNewest piece index: {self.newestPieceIndex}            You are {self.playerIs}")
-        self.update_board(self.board)
+        self.update_board()
         
-    def update_board(self, board):
+    def update_board(self):
         for i in range(42):
             button_size = self.btns[i].size()
             icon_size = QSize(int(button_size.height() * 0.75), int(button_size.height() * 0.75))
@@ -107,14 +107,14 @@ class player(QMainWindow):
             except:
                 pass
             
-            if board[i] == "0":
+            if self.board[i] == "0":
                 self.btns[i].setText("")  # Clear text if the cell is empty
                 self.btns[i].setIcon(QIcon())  # Remove icon if no piece
-            if board[i] == "1":
+            if self.board[i] == "1":
                 self.btns[i].setText("")  # Clear text for consistency
                 self.btns[i].setIcon(QIcon(os.path.join(".","assets","RedCircle.png")))  # Red circle icon
                 self.btns[i].setIconSize(QSize(icon_size))  # Set icon size
-            elif board[i] == "2":
+            elif self.board[i] == "2":
                 self.btns[i].setText("")  # Clear text for consistency
                 self.btns[i].setIcon(QIcon(os.path.join(".","assets","YellowCircle.png")))  # Yellow circle icon
                 self.btns[i].setIconSize(QSize(icon_size))  # Set icon size)
@@ -124,6 +124,48 @@ class player(QMainWindow):
         self.controller.closeMe()
         self.close()
     
+    def reset_game_box(self, win_text):
+        # TODO 
+        # Close connection
+        # update stats
+        # button functionality
+
+        # popup after game completion
+        msg_box = QMessageBox(self)
+        # Add buttons
+        play_again_button = msg_box.addButton("Play Again", QMessageBox.ButtonRole.ActionRole)
+        new_game_button = msg_box.addButton("New Game", QMessageBox.ButtonRole.ActionRole)
+        quit_button = msg_box.addButton("Quit", QMessageBox.ButtonRole.RejectRole)
+
+        if f"{self.playerIs} WINS" in win_text:
+            # self.wins += 1   -> update file
+            win_text = "You win!"
+            msg_box.setIcon(QMessageBox.Icon.Information)
+        elif "NOBODY WINS" in win_text:
+            # self.ties += 1   -> update file
+            win_text = "It's a tie!"
+            msg_box.setIcon(QMessageBox.Icon.Question)
+        else:
+            # self.losses += 1   -> update file
+            win_text = "You lose!"
+            msg_box.setIcon(QMessageBox.Icon.Critical)
+        
+        msg_box.setWindowTitle(win_text)
+        msg_box.setText(win_text + "\nNew game?")
+        msg_box.exec_()
+
+
+        if msg_box.clickedButton() == play_again_button:
+            print("Play Again clicked!")
+            # Add functionality here
+        elif msg_box.clickedButton() == new_game_button:
+            print("New Game clicked!")
+            # Add functionality here
+        elif msg_box.clickedButton() == quit_button:
+            print("Quit clicked!")
+            # Add functionality here
+
+
 
 class SquareButton(QPushButton): 
     
