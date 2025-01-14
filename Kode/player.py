@@ -13,34 +13,40 @@ class player(QMainWindow):
         super().__init__()
         central = QWidget(self)
         self.setCentralWidget(central)
-        self.control_msg, self.turn, self.board, self.newestPieceIndex, self.playerIs = 0,0,0,0,0
+        self.control_msg, self.turn, self.newestPieceIndex, self.playerIs = 0,0,-1,0
+        self.board = "0" * 42
         self.winStats = gamesLogger()
         
         # font
-        info_font = QFont("Lucida Sans Typewriter", 24  , QFont.Weight.Bold)
+        info_font = QFont("Lucida Sans Typewriter", 18  , QFont.Weight.Bold)
+        stat_font = QFont("Lucida Sans Typewriter", 12  , QFont.Weight.Bold)
         # UI
-        self.title = "FOUR! in one Row (or Diagonal(or Column))"
         self.setMinimumSize(600, 400) # min size
-        self.setWindowTitle(self.title) # window title
+        self.setWindowTitle("FOUR! in one Row (or Diagonal(or Column))") # window title
 
         # 1 title
         self.setWindowIcon(QIcon(os.path.join(".","assets","Logo.png")))
-        self.info_label = QLabel(self.title) # info label
+        self.info_label = QLabel("FOUR! in one Row\n(or Diagonal(or Column))") # info label
         # self.info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.info_label.setFont(info_font)
         self.info_label.setMaximumHeight(100)
-        # 2 (debug)
-        self.debug_label = QLabel("Debug") # info label
+        # 2 game info/stats
+        self.stat_info_label = QLabel("Total Games:\nWins:\nLosses:\nDraws:")
+        self.stat_info_label.setFont(stat_font)
+        self.stat_info_label.setMaximumHeight(100)
+        self.stats_label = QLabel(f"{self.winStats.total_games}\n{self.winStats.wins}\n{self.winStats.loses}\n{self.winStats.draws}")
+        self.stats_label.setFont(stat_font)
+        self.stats_label.setMaximumHeight(100)
+        # self.debug_label = QLabel("Debug") # info label
         # self.debug_label.setFont(info_font)
-        self.debug_label.setMaximumHeight(100)
+        # self.debug_label.setMaximumHeight(100)
 
         # info bar
         self.info_bar_top = QHBoxLayout()
-        self.info_bar_top.addWidget(self.info_label, 7)
-        self.info_bar_top.addWidget(self.debug_label, 3)
+        self.info_bar_top.addWidget(self.info_label, 4)
+        self.info_bar_top.addWidget(self.stat_info_label, 2)
+        self.info_bar_top.addWidget(self.stats_label, 1)
 
-        self.board = "0" * 42
-        self.newestPieceIndex = -1
         self.calculate_board = calculateBoard.calculateBoard()
 
 
@@ -95,7 +101,7 @@ class player(QMainWindow):
                 self.turn = "invalidInt"
         else:
             self.control_msg = str(lines)
-        self.debug_label.setText(f"Control: {self.control_msg}\nTurn: {self.turn}\nBoard: {self.board}\nNewest piece index: {self.newestPieceIndex}            You are {self.playerIs}")
+        # self.debug_label.setText(f"Control: {self.control_msg}\nTurn: {self.turn}\nBoard: {self.board}\nNewest piece index: {self.newestPieceIndex}            You are {self.playerIs}")
         self.update_board()
         
     def update_board(self):
@@ -188,7 +194,7 @@ class gamesLogger():
             txtFil.writelines(("0", "0", "0"))
             txtFil.close()
             txtFil = open(os.path.join(".","Data","winStats.txt"), "r")
-              
+            
         try:
             self.wins = int(txtFil.readline().strip())
         except:
@@ -201,7 +207,11 @@ class gamesLogger():
             self.draws = int(txtFil.readline().strip())
         except:
             self.draws = 0
+        self.total_games = self.wins + self.loses + self.draws
         txtFil.close()
+    
+    
+
     
     def saveData(self):
         txtFil = open(os.path.join(".","Data","winStats.txt"), "w")
