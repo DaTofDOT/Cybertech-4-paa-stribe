@@ -1,6 +1,7 @@
-import player
+import sys
+sys.path.append("Kode")
+import player #importer player fra kode mappen
 
-from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtWidgets import *
 
 if __name__ == "__main__":
