@@ -30,7 +30,8 @@ class gameController(QWidget):
             pass
             #modtaget serverens velkommen besked med ip 
         elif "WINS" in receivedStr:
-            pass
+            self.lines = receivedStr.split()
+            self.newServerDataSignal.emit(self.lines)
         else:
             self.lines = receivedStr.split()
             self.newServerDataSignal.emit(self.lines)
@@ -116,7 +117,6 @@ class startPopUp(QMainWindow):
             chosenIP = "127.0.0.1"
             self.txtEditor.setText("127.0.0.1")
             
-        
         try:
             socket = s.socket(s.AF_INET, s.SOCK_STREAM)
             socket.connect((chosenIP, 54321))

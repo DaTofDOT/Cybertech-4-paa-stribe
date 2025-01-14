@@ -95,8 +95,15 @@ class player(QMainWindow):
                 self.turn = "invalidInt"
         else:
             self.control_msg = str(lines)
-        self.debug_label.setText(f"Control: {self.control_msg}\nTurn: {self.turn}\nBoard: {self.board}\nNewest piece index: {self.newestPieceIndex}            You are {self.playerIs}")
+        
         self.update_board()
+        
+        if "WINS" in self.control_msg:
+            self.controller.setpCon("")
+            self.reset_game_box(self.control_msg)
+        
+        #self.debug_label.setText(f"Control: {self.control_msg}\nTurn: {self.turn}\nBoard: {self.board}\nNewest piece index: {self.newestPieceIndex}            You are {self.playerIs}")
+        
         
     def update_board(self):
         for i in range(42):
@@ -126,11 +133,11 @@ class player(QMainWindow):
 
     def closeEvent(self, a0=0):
         self.controller.closeMe()
+        self.winStats.saveData()
         self.close()
     
     def reset_game_box(self, win_text):
         # TODO 
-        # Close connection
         # update stats
         # button functionality
 
@@ -143,15 +150,15 @@ class player(QMainWindow):
 
         if f"{self.playerIs} WINS" in win_text:
             # self.wins += 1   -> update file
-            win_text = "You win!"
+            win_text = "You win! :)"
             msg_box.setIcon(QMessageBox.Icon.Information)
         elif "NOBODY WINS" in win_text:
             # self.ties += 1   -> update file
-            win_text = "It's a tie!"
+            win_text = "It's a tie! :|"
             msg_box.setIcon(QMessageBox.Icon.Question)
         else:
             # self.losses += 1   -> update file
-            win_text = "You lose!"
+            win_text = "You lose! :("
             msg_box.setIcon(QMessageBox.Icon.Critical)
         
         msg_box.setWindowIcon(QIcon(os.path.join(".","assets","Logo.png")))
@@ -164,11 +171,13 @@ class player(QMainWindow):
             print("Play Again clicked!")
             # Add functionality here
         elif msg_box.clickedButton() == new_game_button:
-            print("New Game clicked!")
-            # Add functionality here
+            #print("New Game clicked!")
+            self.controller.newGame()
+            
         elif msg_box.clickedButton() == quit_button:
-            print("Quit clicked!")
-            # Add functionality here
+            #print("Quit clicked!")
+            msg_box.close()
+            self.closeEvent()
 
 
 
@@ -194,9 +203,9 @@ class gamesLogger():
         except:
             self.wins = 0
         try:
-            self.loses = int(txtFil.readline().strip())
+            self.losses = int(txtFil.readline().strip())
         except:
-            self.loses = 0
+            self.losses = 0
         try:
             self.draws = int(txtFil.readline().strip())
         except:
@@ -205,5 +214,5 @@ class gamesLogger():
     
     def saveData(self):
         txtFil = open(os.path.join(".","Data","winStats.txt"), "w")
-        txtFil.writelines((str(self.wins), str(self.loses), str(self.draws)))
+        txtFil.writelines((str(self.wins), str(self.losses), str(self.draws)))
         txtFil.close()
