@@ -1,23 +1,39 @@
 import playerConnection, server
 import socket as s
 
-from PyQt6.QtCore import Qt, QSize
+
+from PyQt6.QtCore import Qt, QSize, pyqtSignal
 from PyQt6.QtWidgets import *
 
-class gameController():
+class gameController(QWidget):
     '''
     overklassen der spørger om man vil være host eller "bare" player,
     og opretter evt. host og playerConnection
     '''
-    def __init__(self):
+    newServerDataSignal = pyqtSignal(list)
+    def __init__(self, p):
+        super().__init__()
+        self.p=p
         self.localServerExists = False
         self.popUp = startPopUp(self)
         self.popUp.show()
         self.popUpExists = True
-        self.setpCon("")
+        self.pCon, self.lines = "", []
+        self.newServerDataSignal.connect(self.p.newDataFromServer)
     
     def receiveData(self, sender, receivedStr:str):
         print("Modtaget"+receivedStr+"!")
+        if "YOU ARE" in receivedStr:
+            self.p.playerIs = receivedStr[8] #should be either "1" or "2"
+        elif "@" in receivedStr:
+            pass
+            #modtaget serverrens velkommen besked med ip 
+        else:
+            self.lines = receivedStr.split()
+            self.newServerDataSignal.emit(self.lines)
+        
+
+            
         
     def closeMe(self):
         if self.pCon != "":
@@ -26,6 +42,7 @@ class gameController():
             self.server.closeMe()
         if self.popUpExists:
             self.popUp.closeMe()
+        super().close()
             
     def createServer(self):
         self.server = server.host()
@@ -67,33 +84,38 @@ class startPopUp(QMainWindow):
     
     def hostHandler(self):
         if self.p.localServerExists:
-            pass
+            self.label.setText("Local server already exists, awaiting player 2")
+            
         else:
             self.p.createServer()
+            socket = s.socket(s.AF_INET, s.SOCK_STREAM)
+            socket.connect(("127.0.0.1", 54321))
+            self.p.setpCon(playerConnection.connection(socket, self.p.receiveData)) 
+            self.label.setText("Local server created, awaiting player 2")
         
         self.txtEditor.setText(self.p.server.myIP)
         
-        socket = s.socket(s.AF_INET, s.SOCK_STREAM)
-        socket.connect(("127.0.0.1", 54321))
-        self.p.setpCon(playerConnection.connection(socket, self.p.receiveData)) 
+
 
     def joinHandler(self):
         if self.p.localServerExists:
+            self.label.setText("Closing local server")
             self.p.server.closeMe()
             self.p.localServerExists = False
-        
-        #hæntIP fra UI
         
         chosenIP=self.txtEditor.toPlainText()
         if chosenIP == "":
             chosenIP = "127.0.0.1"
+            self.txtEditor.setText("127.0.0.1")
         
         try:
             socket = s.socket(s.AF_INET, s.SOCK_STREAM)
             socket.connect((chosenIP, 54321))
             self.p.setpCon(playerConnection.connection(socket, self.p.receiveData))
         except:
+            self.label.setText("The server at the chosen IP dosen't exist")
             print("dosent exist")  
+            self.p.setpCon("")
     
     def closeMe(self):
         self.p.popUpExists=False

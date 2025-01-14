@@ -1,7 +1,9 @@
+import random
+
 class calculateBoard():
     def __init__(self):
         self.board_str = "0" * 42
-        self.player_num = 1
+        self.player_num = random.randrange(1,3) # tilfældigt 1 eller 2
 
     
     def play_move(self, col: int) -> tuple[str, int, str, int]:
@@ -19,6 +21,12 @@ class calculateBoard():
         - self.board_str: updated board string
         - newest_piece_index: index of the newly placed piece (0-41)
         """
+        if not col in range(7):
+            return "INVALID", self.player_num, self.board_str, -1  # if the column is invalid return an invalid move
+             
+        
+        
+        
         # Convert board string into a list for easier manipulation
         
 

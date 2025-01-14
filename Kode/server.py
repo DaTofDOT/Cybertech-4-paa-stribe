@@ -1,6 +1,7 @@
 from threading import Thread
 import socket as s
-import random, time
+import time
+import calculateBoard
 
 import playerConnection
 
@@ -51,13 +52,13 @@ class host():
             self.ongoingGames[0].closeMe()
         originalLen=(len(self.currentConnections))
         for i in range(originalLen):
-            self.currentConnections[i].close()
+            self.currentConnections[i].close() #sockets
         
         
 
-                
-class serverGame():
-    def __init__(self, p, players:tuple|list):
+'''                
+class serverMessage():
+    def __init__(self, p:host, players:tuple|list):
         self.overServer = p
         
         p1 , p2 = players
@@ -74,27 +75,20 @@ class serverGame():
             print("player2 virker ikke")
             
 
-        self.board = "0"*42
-        self.currentTurn = random.randrange(1,3) # tilfældigt 1 eller 2
-        self.newestPieceIndex = -1
-        '''
-        t = Thread(target=self.run) 
-        t.start()
-        '''
-    
-    def updateTurnVar(self):
-        if self.currentTurn == 1:
-            self.currentTurn = 2
-        else:
-            self.currentTurn = 1
-        return self.currentTurn
-    
+        #self.board = "0"*42
+        #self.currentTurn = random.randrange(1,3) # tilfældigt 1 eller 2
+        #self.newestPieceIndex = -1
+
+        #t = Thread(target=self.run) 
+        #t.start()
     
     def receivedNewMessage(self, sender, message):
         if sender == self.p1Con:
             self.p2Con.send(message)
+
         else: # sender == self.p2Con
             self.p1Con.send(message)
+
         
     
     def run(self):
@@ -104,9 +98,62 @@ class serverGame():
         
     def closeMe(self):
         self.keepAlive = False
-        message = "NOBODY WINS\n\r"+str(self.currentTurn)+"\n\r"+self.board+"\n\r"+str(self.newestPieceIndex)
+        #message = "NOBODY WINS\n\r"+str(self.currentTurn)+"\n\r"+self.board+"\n\r"+str(self.newestPieceIndex)
         
         
         self.p1Con.closeMe() #not final !!!
         self.p2Con.closeMe() #not final !!!
+        self.overServer.removeMeFromOngoingGames(self)
+'''
+        
+class serverGame():
+    def __init__(self, p:host, players:tuple|list):
+        self.overServer = p
+        self.keepAlive = True
+        self.gameTracker = calculateBoard.calculateBoard()
+        
+        p1 , p2 = players
+        try:
+            self.p1Con = playerConnection.connection(p1, self.receivedNewMessage, self.connectionCloseFunction)
+            self.p1Con.send("YOU ARE 1")
+        except:
+            print("player1 virker ikke")
+            
+        try:
+            self.p2Con = playerConnection.connection(p2, self.receivedNewMessage, self.connectionCloseFunction)
+            self.p2Con.send("YOU ARE 2")
+        except:
+            print("player2 virker ikke")
+        initial=f"OK\n\r{self.gameTracker.player_num}\n\r{self.gameTracker.board_str}\n\r-1"
+        self.p1Con.send(initial)
+        self.p2Con.send(initial)
+        
+    
+    def connectionCloseFunction(self, sender):
+        if self.keepAlive:
+            self.closeMe()
+    
+    def receivedNewMessage(self, sender:playerConnection.connection, message:str):
+        if ((sender == self.p1Con and self.gameTracker.player_num == 1) or 
+            (sender == self.p2Con and self.gameTracker.player_num == 2 )):
+            try:
+                column = int(message.strip())
+            except:
+                print("recived message wasn't an int")
+                return
+
+            newMessage = "\n\r".join(str(x) for x in self.gameTracker.play_move(column))+"\n\r"
+            self.p1Con.send(newMessage)
+            self.p2Con.send(newMessage)
+        
+        
+        
+    def closeMe(self):
+        self.keepAlive = False
+        message = "NOBODY WINS\n\r"+str(self.gameTracker.player_num)+"\n\r"+self.gameTracker.board_str+"\n\r-1"
+        self.p1Con.send(message)
+        self.p2Con.send(message)
+        
+        self.p1Con.closeMe()
+        self.p2Con.closeMe()
         self.overServer.removeMeFromOngoingGames(self)

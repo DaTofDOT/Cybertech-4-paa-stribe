@@ -13,7 +13,7 @@ class player(QMainWindow):
         super().__init__()
         central = QWidget(self)
         self.setCentralWidget(central)
-
+        self.control_msg, self.turn, self.board, self.newestPieceIndex, self.playerIs = 0,0,0,0,0
         # font
         info_font = QFont("Lucida Sans Typewriter", 18, QFont.Weight.Bold)
         # UI
@@ -58,7 +58,7 @@ class player(QMainWindow):
         
         
         self.show()
-        self.controller=game.gameController()
+        self.controller=game.gameController(self)
     
     def resizeEvent(self, event):
         # Ensure buttons resize properly during window resize
@@ -69,15 +69,32 @@ class player(QMainWindow):
     def handle_button_click(self, idx:int):
         print(f"Button {idx} clicked (row: {1 + idx // 7}, cln: {1 + idx % 7})")
 
+        
+        
         # Update the board
-        self.control_msg, self.turn, self.board, self.newestPieceIndex = self.calculate_board.play_move((idx % 7))
-        print(self.control_msg, self.turn, self.board, self.newestPieceIndex)
-        self.debug_label.setText(f"Control: {self.control_msg}\nTurn: {self.turn}\nBoard: {self.board}\nNewest piece index: {self.newestPieceIndex}")
-        self.update_board(self.board)
-        self.controller.send(str(idx))
+        #self.control_msg, self.turn, self.board, self.newestPieceIndex = self.calculate_board.play_move((idx % 7))
+        #print(self.control_msg, self.turn, self.board, self.newestPieceIndex)
+        #self.debug_label.setText(f"Control: {self.control_msg}\nTurn: {self.turn}\nBoard: {self.board}\nNewest piece index: {self.newestPieceIndex}")
+        #self.update_board(self.board)
+        self.controller.send(str(idx % 7))
         # return (idx % 7) to the server
-
-
+    def newDataFromServer(self, signalValue = ""):
+        lines = signalValue
+        if len(lines) >= 4:
+            self.control_msg, self.board = lines[0].strip(),  lines[2].strip(), 
+            try: 
+                self.turn  = int(lines[1].strip())
+            except:
+                self.turn = "invalidInt"
+            try:
+                self.newestPieceIndex= int(lines[3].strip())
+            except:
+                self.turn = "invalidInt"
+        else:
+            self.control_msg = str(lines)
+        self.debug_label.setText(f"Control: {self.control_msg}\nTurn: {self.turn}\nBoard: {self.board}\nNewest piece index: {self.newestPieceIndex}            You are {self.playerIs}")
+        self.update_board(self.board)
+        
     def update_board(self, board):
         for i in range(42):
             button_size = self.btns[i].size()
