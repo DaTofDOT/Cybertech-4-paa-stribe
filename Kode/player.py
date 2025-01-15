@@ -1,4 +1,4 @@
-import game, calculateBoard
+import game, calculateBoard, os
 
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtWidgets import *
@@ -13,18 +13,35 @@ class player(QMainWindow):
         super().__init__()
         central = QWidget(self)
         self.setCentralWidget(central)
-        self.control_msg, self.turn, self.board, self.newestPieceIndex, self.playerIs = 0,0,0,0,0
+        self.control_msg, self.turn, self.newestPieceIndex, self.playerIs = 0,0,-1,0
+        self.board = "0" * 42
+        self.winStats = gamesLogger()
+        
         # font
-        info_font = QFont("Lucida Sans Typewriter", 18, QFont.Weight.Bold)
+        info_font = QFont("Lucida Sans Typewriter", 24  , QFont.Weight.Bold)
+        stat_font = QFont("Lucida Sans Typewriter", 12  , QFont.Weight.Bold)
         # UI
         self.setMinimumSize(600, 400) # min size
-        self.setWindowTitle("4-paa-stribe") # window title
+        self.setWindowTitle("FOUR! in one Row (or Diagonal(or Column))") # window title
 
         # 1 title
-        self.info_label = QLabel("4-paa-stribe") # info label
-        self.info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.setWindowIcon(QIcon(os.path.join(".","assets","Logo.png")))
+        self.info_label = QLabel("FOUR! in one Row\n(or Diagonal(or Column))") # info label
+        # self.info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.info_label.setFont(info_font)
         self.info_label.setMaximumHeight(100)
+
+
+        # win stats
+        self.stat_info_label = QLabel("Total Games:\nWins:\nLosses:\nDraws:")
+        self.stat_info_label.setFont(stat_font)
+        self.stat_info_label.setMaximumHeight(100)
+        self.stats_label = QLabel(f"{self.winStats.total_games}\n{self.winStats.wins}\n{self.winStats.losses}\n{self.winStats.draws}")
+        self.stats_label.setFont(stat_font)
+        self.stats_label.setMaximumHeight(100)
+
+
+
         # 2 (debug)
         self.debug_label = QLabel("Debug") # info label
         # self.debug_label.setFont(info_font)
@@ -32,8 +49,10 @@ class player(QMainWindow):
 
         # info bar
         self.info_bar_top = QHBoxLayout()
-        self.info_bar_top.addWidget(self.info_label, 7)
-        self.info_bar_top.addWidget(self.debug_label, 3)
+        self.info_bar_top.addWidget(self.info_label, 4)
+        self.info_bar_top.addWidget(self.stat_info_label, 2)
+        self.info_bar_top.addWidget(self.stats_label, 1)
+        self.info_bar_top.addWidget(self.debug_label, 2)
 
         self.board = "0" * 42
         self.calculate_board = calculateBoard.calculateBoard()
@@ -67,17 +86,9 @@ class player(QMainWindow):
         super().resizeEvent(event)
 
     def handle_button_click(self, idx:int):
-        print(f"Button {idx} clicked (row: {1 + idx // 7}, cln: {1 + idx % 7})")
-
-        
-        
-        # Update the board
-        #self.control_msg, self.turn, self.board, self.newestPieceIndex = self.calculate_board.play_move((idx % 7))
-        #print(self.control_msg, self.turn, self.board, self.newestPieceIndex)
-        #self.debug_label.setText(f"Control: {self.control_msg}\nTurn: {self.turn}\nBoard: {self.board}\nNewest piece index: {self.newestPieceIndex}")
-        #self.update_board(self.board)
         self.controller.send(str(idx % 7))
-        # return (idx % 7) to the server
+
+
     def newDataFromServer(self, signalValue = ""):
         lines = signalValue
         if len(lines) >= 4:
@@ -92,8 +103,10 @@ class player(QMainWindow):
                 self.turn = "invalidInt"
         else:
             self.control_msg = str(lines)
-        self.debug_label.setText(f"Control: {self.control_msg}\nTurn: {self.turn}\nBoard: {self.board}\nNewest piece index: {self.newestPieceIndex}            You are {self.playerIs}")
+        
         self.update_board(self.board)
+        self.update_turn_info()
+        self.debug_label.setText(f"Control: {self.control_msg}\nTurn: {self.turn}\nBoard: {self.board}\nNewest piece index: {self.newestPieceIndex}            You are {self.playerIs}")
         
     def update_board(self, board):
         for i in range(42):
@@ -101,7 +114,7 @@ class player(QMainWindow):
             icon_size = QSize(int(button_size.height() * 0.75), int(button_size.height() * 0.75))
             try:
                 if i == self.newestPieceIndex:
-                    self.btns[i].setStyleSheet("background-color: white")
+                    self.btns[i].setStyleSheet("background-color: green")
                 else:
                     self.btns[i].setStyleSheet("")
             except:
@@ -120,15 +133,107 @@ class player(QMainWindow):
                 self.btns[i].setIconSize(QSize(icon_size))  # Set icon size)
             
 
+    def update_turn_info(self):
+        if self.playerIs == "1":
+            img_path = os.path.join(".", "assets", "RedCircle.png")
+        elif self.playerIs == "2":
+            img_path = os.path.join(".", "assets", "YellowCircle.png")
+
+        if self.turn == int(self.playerIs):
+            turn_text = "Your Turn"
+        else:
+            turn_text = "Opponent's Turn"
+        
+        # Update QLabel with HTML content
+        self.info_label.setText(f"<p>You are <img src='{img_path}' width='24' height='24'><br>{turn_text}</p>")
+    
+    def reset_game_box(self, win_text):
+        # TODO 
+        # update stats
+        # button functionality
+
+        # popup after game completion
+        msg_box = QMessageBox(self)
+        # Add buttons
+        play_again_button = msg_box.addButton("Play Again", QMessageBox.ButtonRole.ActionRole)
+        new_game_button = msg_box.addButton("New Game", QMessageBox.ButtonRole.ActionRole)
+        quit_button = msg_box.addButton("Quit", QMessageBox.ButtonRole.RejectRole)
+
+        if f"{self.playerIs} WINS" in win_text:
+            # self.wins += 1   -> update file
+            win_text = "You win! :)"
+            msg_box.setIcon(QMessageBox.Icon.Information)
+        elif "NOBODY WINS" in win_text:
+            # self.ties += 1   -> update file
+            win_text = "It's a tie! :|"
+            msg_box.setIcon(QMessageBox.Icon.Question)
+        else:
+            # self.losses += 1   -> update file
+            win_text = "You lose! :("
+            msg_box.setIcon(QMessageBox.Icon.Critical)
+        
+        self.stats_label.setText(f"{self.winStats.total_games}\n{self.winStats.wins}\n{self.winStats.losses}\n{self.winStats.draws}")
+
+        msg_box.setWindowIcon(QIcon(os.path.join(".","assets","Logo.png")))
+        msg_box.setWindowTitle(win_text)
+        msg_box.setText(win_text + "\nNew game?")
+        msg_box.exec()
+
+
+        if msg_box.clickedButton() == play_again_button:
+            print("Play Again clicked!")
+            # Add functionality here
+        elif msg_box.clickedButton() == new_game_button:
+            #print("New Game clicked!")
+            self.controller.newGame()
+            
+        elif msg_box.clickedButton() == quit_button:
+            #print("Quit clicked!")
+            msg_box.close()
+            self.closeEvent()
+
+
     def closeEvent(self, a0=0):
         self.controller.closeMe()
         self.close()
     
 
 class SquareButton(QPushButton): 
-    
     def sizeHint(self) -> QSize:
         size = super().sizeHint()
         return QSize(min(size.width(), size.height()), min(size.width(), size.height()))
 
+
+class gamesLogger():
+    def __init__(self):
+        #test if file exists if not, create it. 
+        try:
+            txtFil = open(os.path.join(".","Data","winStats.txt"), "r")
+        except:
+            txtFil = open(os.path.join(".","Data","winStats.txt"), "w")
+            txtFil.writelines(("0", "0", "0"))
+            txtFil.close()
+            txtFil = open(os.path.join(".","Data","winStats.txt"), "r")
+            
+        try:
+            self.wins = int(txtFil.readline().strip())
+        except:
+            self.wins = 0
+        try:
+            self.losses = int(txtFil.readline().strip())
+        except:
+            self.losses = 0
+        try:
+            self.draws = int(txtFil.readline().strip())
+        except:
+            self.draws = 0
+        self.total_games = self.wins + self.losses + self.draws
+        txtFil.close()
     
+    
+
+    
+    def saveData(self):
+        txtFil = open(os.path.join(".","Data","winStats.txt"), "w")
+        txtFil.writelines((str(self.wins), str(self.losses), str(self.draws)))
+        txtFil.close()

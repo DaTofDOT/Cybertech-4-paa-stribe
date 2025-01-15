@@ -23,7 +23,7 @@ class calculateBoard():
         """
         if not col in range(7):
             return "INVALID", self.player_num, self.board_str, -1  # if the column is invalid return an invalid move
-             
+            
         
         
         
