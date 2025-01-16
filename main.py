@@ -1,6 +1,6 @@
 import sys
 sys.path.append("Kode")
-import player #importer player fra kode mappen
+import player
 
 from PyQt6.QtWidgets import *
 

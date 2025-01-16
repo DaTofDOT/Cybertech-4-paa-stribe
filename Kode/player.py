@@ -6,10 +6,21 @@ from PyQt6.QtGui import *
 
 
 class player(QMainWindow):
-    '''
-    hovedklassen
-    '''
+
     def __init__(self):
+        """
+        Initializes the player window for the Connect 4 game.
+
+        This constructor sets up the main window, initializes the game components, and configures the layout and widgets, including:
+        - Central widget for the main window.
+        - Game initialization using `initGame()`.
+        - Statistics logger for tracking wins, losses, and draws.
+        - Fonts and window properties such as title and icon.
+        - Information labels displaying the game title and player statistics.
+        - Layouts for organizing widgets, including an info bar and a 7x6 grid of buttons representing the game board.
+
+        The game board buttons are set to expand and are connected to a click handler for user interaction.
+        """
         super().__init__()
         central = QWidget(self)
         self.setCentralWidget(central)
@@ -20,17 +31,15 @@ class player(QMainWindow):
         # font
         info_font = QFont("Lucida Sans Typewriter", 24  , QFont.Weight.Bold)
         stat_font = QFont("Lucida Sans Typewriter", 12  , QFont.Weight.Bold)
-        # UI
+
         self.setMinimumSize(600, 400) # min size
-        self.setWindowTitle("FOUR! in one Row (or Diagonal(or Column))") # window title
 
         # 1 title
+        self.setWindowTitle("FOUR! in one Row (or Diagonal(or Column))") # window title
         self.setWindowIcon(QIcon(os.path.join(".","assets","Logo.png")))
-        self.info_label = QLabel("FOUR! in one Row\n(or Diagonal(or Column))") # info label
-        # self.info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.info_label = QLabel("Four in a row") # info label
         self.info_label.setFont(info_font)
         self.info_label.setMaximumHeight(100)
-
 
         # win stats
         self.stat_info_label = QLabel("Total Games:\nWins:\nLosses:\nDraws:")
@@ -39,9 +48,6 @@ class player(QMainWindow):
         self.stats_label = QLabel(f"{self.winStats.total_games}\n{self.winStats.wins}\n{self.winStats.losses}\n{self.winStats.draws}")
         self.stats_label.setFont(stat_font)
         self.stats_label.setMaximumHeight(100)
-        # self.debug_label = QLabel("Debug") # info label
-        # self.debug_label.setFont(info_font)
-        # self.debug_label.setMaximumHeight(100)
 
         # info bar
         self.info_bar_top = QHBoxLayout()
@@ -72,6 +78,16 @@ class player(QMainWindow):
     
     def initGame(self):
         
+        """
+        Resets the game to its initial state.
+
+        Attributes:
+        - control_msg: resets to 0
+        - turn: resets to 0
+        - newestPieceIndex: resets to -1
+        - playerIs: resets to 0
+        - board: resets to a string of 42 zeros
+        """
         self.control_msg, self.turn, self.newestPieceIndex, self.playerIs = 0,0,-1,0
         self.board = "0" * 42
         #self.calculate_board = calculateBoard.calculateBoard() for testing
@@ -80,16 +96,36 @@ class player(QMainWindow):
         
     
     def resizeEvent(self, event):
-        # Ensure buttons resize properly during window resize
-        self.updateGeometry()  # Force the layout to update and recheck button sizes
+        """
+        Called when the window is resized. Forces the layout to update and recheck button sizes so
+        that the buttons are always as large as possible while still fitting the window.
+        """
+        self.updateGeometry()
         self.update_board()
         super().resizeEvent(event)
 
     def handle_button_click(self, idx:int):
+        """
+        Called when a button on the game board is clicked. Sends the column number of the button to the server.
+
+        Parameters:
+        - idx: int, the index of the button that was clicked
+        """
         self.controller.send(str(idx % 7))
 
 
     def newDataFromServer(self, signalValue = ""):
+        """
+        Called when new data is received from the server. Parses the data and updates the game
+        board and turn information accordingly.
+
+        Parameters:
+        - signalValue: str, the new data received from the server
+
+        If the data is valid, updates the control message, board, turn, and newest piece index
+        accordingly. If the data is invalid, sets the control message to the received data.
+        """
+        
         lines = signalValue
         if len(lines) >= 4:
             self.control_msg, self.board = lines[0].strip(),  lines[2].strip()
@@ -110,11 +146,17 @@ class player(QMainWindow):
         if "WINS" in self.control_msg:
             self.controller.setpCon("")
             self.reset_game_box(self.control_msg)
-        
-        #self.debug_label.setText(f"Control: {self.control_msg}\nTurn: {self.turn}\nBoard: {self.board}\nNewest piece index: {self.newestPieceIndex}            You are {self.playerIs}")
-        
+                
         
     def update_board(self):
+        """
+        Updates the game board buttons to reflect the current game state.
+
+        If a piece has been placed on the board since the last update, the button
+        corresponding to that piece is highlighted green. Otherwise, the buttons
+        are updated with the correct icons and text based on the game state.
+
+        """
         for i in range(42):
             button_size = self.btns[i].size()
             icon_size = QSize(int(button_size.height() * 0.75), int(button_size.height() * 0.75))
@@ -142,6 +184,9 @@ class player(QMainWindow):
                 self.btns[i].setIconSize(QSize(icon_size))  # Set icon size
             
     def update_turn_info(self):
+        """
+        Updates the turn information displayed on the game window.
+        """
         if self.playerIs == "1":
             img_path = os.path.join(".", "assets", "RedCircle.png")
         elif self.playerIs == "2":
@@ -156,11 +201,18 @@ class player(QMainWindow):
         self.info_label.setText(f"<p>You are <img src='{img_path}' width='24' height='24'><br>{turn_text}</p>")
     
     def reset_game_box(self, win_text):
-        # TODO 
+        """
+        Pops up a message box after the game is completed, displaying the result of the game and providing options to play again, start a new game, or quit the program.
 
-        # popup after game completion
+        The buttons in the box are:
+
+            - Play Again: restarts the game with the same IP and port
+            - New Game: starts a new game where a new IP can be chosen
+            - Quit: closes the game window
+
+        The statistics are updated based on the outcome of the game.
+        """
         msg_box = QMessageBox(self)
-        # Add buttons
         play_again_button = msg_box.addButton("Play Again", QMessageBox.ButtonRole.ActionRole)
         new_game_button = msg_box.addButton("New Game", QMessageBox.ButtonRole.ActionRole)
         quit_button = msg_box.addButton("Quit", QMessageBox.ButtonRole.RejectRole)
@@ -170,19 +222,17 @@ class player(QMainWindow):
             win_text = "You win! :)"
             msg_box.setIcon(QMessageBox.Icon.Information)
             
-        
         elif "NOBODY WINS" in win_text:
             self.winStats.addToVariable("draws")
             win_text = "It's a tie! :|"
             msg_box.setIcon(QMessageBox.Icon.Question)
-        
         
         else:
             self.winStats.addToVariable("losses")
             win_text = "You lose! :("
             msg_box.setIcon(QMessageBox.Icon.Critical)
         
-        
+        # Update statistics label
         self.stats_label.setText(f"{self.winStats.total_games}\n{self.winStats.wins}\n{self.winStats.losses}\n{self.winStats.draws}")
 
         msg_box.setWindowIcon(QIcon(os.path.join(".","assets","Logo.png")))
@@ -191,8 +241,6 @@ class player(QMainWindow):
         msg_box.exec()
 
         if msg_box.clickedButton() == play_again_button:
-            #print("Play Again clicked!")
-            # Add functionality here
             if self.controller.newConnection(False): #opretter en ny forbindelse til den gamle adresse
                 self.initGame()
                 self.update_board()
@@ -202,7 +250,6 @@ class player(QMainWindow):
                 msg_box.setText("Server no longer exists (。﹏。*)")
                 
         elif msg_box.clickedButton() == new_game_button:
-            #print("New Game clicked!")
             self.initGame()
             self.update_board()
             self.controller.newGame()
@@ -210,12 +257,15 @@ class player(QMainWindow):
             msg_box.close()
             
         elif msg_box.clickedButton() == quit_button:
-            #print("Quit clicked!")
             msg_box.close()
             self.closeEvent()
 
 
     def closeEvent(self, a0=0):
+        """
+        Called when the window is about to be closed. Saves the win statistics and closes
+        the connection to the server.
+        """
         self.winStats.saveData()
         self.controller.closeMe()
         self.winStats.saveData()
@@ -235,7 +285,15 @@ class SquareButton(QPushButton):
 
 class gamesLogger():
     def __init__(self):
-        #test if file exists if not, create it. 
+        """
+        Initializes the gamesLogger.
+        
+        Opens the file "winStats.txt" in the "Data" folder if it exists, and reads the
+        win, loss, and draw counts from it. If the file does not exist, it creates it and
+        sets the counts to 0.
+        
+        :raises FileNotFoundError: If the file cannot be opened.
+        """
         try:
             txtFil = open(os.path.join(".","Data","winStats.txt"), "r")
         except:
@@ -260,7 +318,15 @@ class gamesLogger():
         txtFil.close()
     
     def addToVariable(self, variable:str =""):
-        
+        """
+        Updates the specified game statistic variable and saves the data.
+
+        Parameters:
+        - variable: str, the name of the statistic to update ("wins", "losses", or "draws").
+
+        Returns:
+        - True if the variable was successfully updated, False if the variable name is invalid.
+        """
         if variable == "wins":
             self.wins += 1
         elif variable == "losses":
@@ -277,6 +343,11 @@ class gamesLogger():
 
     
     def saveData(self):
+        """
+        Saves the current win, loss, and draw counts to the file "winStats.txt" in the "Data" folder.
+        
+        :raises FileNotFoundError: If the file cannot be opened.
+        """
         txtFil = open(os.path.join(".","Data","winStats.txt"), "w")
         txtFil.write((str(self.wins)+"\n"+str(self.losses)+"\n"+str(self.draws)))
         txtFil.close()
