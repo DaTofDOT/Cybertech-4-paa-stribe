@@ -55,57 +55,6 @@ class host():
             self.currentConnections[i].close() #sockets
         
         
-
-'''                
-class serverMessage():
-    def __init__(self, p:host, players:tuple|list):
-        self.overServer = p
-        
-        p1 , p2 = players
-        try:
-            self.p1Con = playerConnection.connection(p1, self.receivedNewMessage)
-            self.p1Con.send("YOU ARE 1")
-        except:
-            print("player1 virker ikke")
-            
-        try:
-            self.p2Con = playerConnection.connection(p2, self.receivedNewMessage)
-            self.p2Con.send("YOU ARE 2")
-        except:
-            print("player2 virker ikke")
-            
-
-        #self.board = "0"*42
-        #self.currentTurn = random.randrange(1,3) # tilfældigt 1 eller 2
-        #self.newestPieceIndex = -1
-
-        #t = Thread(target=self.run) 
-        #t.start()
-    
-    def receivedNewMessage(self, sender, message):
-        if sender == self.p1Con:
-            self.p2Con.send(message)
-
-        else: # sender == self.p2Con
-            self.p1Con.send(message)
-
-        
-    
-    def run(self):
-        self.keepAlive = True
-        while self.keepAlive:
-            pass
-        
-    def closeMe(self):
-        self.keepAlive = False
-        #message = "NOBODY WINS\n\r"+str(self.currentTurn)+"\n\r"+self.board+"\n\r"+str(self.newestPieceIndex)
-        
-        
-        self.p1Con.closeMe() #not final !!!
-        self.p2Con.closeMe() #not final !!!
-        self.overServer.removeMeFromOngoingGames(self)
-'''
-        
 class serverGame():
     def __init__(self, p:host, players:tuple|list):
         self.overServer = p

@@ -27,20 +27,28 @@ class gameController(QWidget):
         if "YOU ARE" in receivedStr:
             self.p.playerIs = receivedStr[8] #should be either "1" or "2"
             if self.popUpExists:
-                print("forsøger at lukke popup")
+                #print("forsøger at lukke popup")
                 self.closePopUpSignal.emit("")
-                print("har lukket popUp")
+                #print("har lukket popUp")
             
         elif "@" in receivedStr:
             pass
             #modtaget serverens velkommen besked med ip 
-        elif "WINS" in receivedStr:
-            self.lines = receivedStr.split()
-            self.newServerDataSignal.emit(self.lines)
         else:
             self.lines = receivedStr.split("\n\r")
             self.newServerDataSignal.emit(self.lines)
-        
+    def newConnection(self, adress:tuple|bool):
+        if adress:
+            self.adress = adress
+        try:
+            socket = s.socket(s.AF_INET, s.SOCK_STREAM)
+            socket.connect(adress)
+            self.setpCon(connection.connection(socket, self.receiveData))
+            return True
+        except:
+            self.setpCon("")
+            return False
+            
     def newGame(self):
         self.popUp = startPopUp(self)
         self.popUp.show()
@@ -56,8 +64,7 @@ class gameController(QWidget):
             self.pCon.closeMe()
         if self.localServerExists:
             self.server.closeMe()
-        if self.popUpExists:
-            self.popUp.closeMe()
+        self.closePopUpSignal.emit("")
         super().close()
             
     def createServer(self):
@@ -108,13 +115,15 @@ class startPopUp(QWidget):
             self.label.setText("Local server already exists, awaiting player 2")
             
         else:
-            self.p.createServer()
-            socket = s.socket(s.AF_INET, s.SOCK_STREAM)
-            socket.connect(("127.0.0.1", 54321))
-            self.p.setpCon(connection.connection(socket, self.p.receiveData)) 
-            self.label.setText("Local server created, awaiting player 2")
+            try:
+                self.p.createServer()
+                self.txtEditor.setText(self.p.server.myIP)
+            except:
+                self.label.setText("Local server already exists in another window.")
+            self.p.newConnection(("127.0.0.1", 54321))
+            
+        self.label.setText("Local server at the IP below, awaiting player 2")
         
-        self.txtEditor.setText(self.p.server.myIP)
         
 
 
@@ -130,14 +139,10 @@ class startPopUp(QWidget):
             chosenIP = "127.0.0.1"
             self.txtEditor.setText("127.0.0.1")
             
-        try:
-            socket = s.socket(s.AF_INET, s.SOCK_STREAM)
-            socket.connect((chosenIP, 54321))
-            self.p.setpCon(connection.connection(socket, self.p.receiveData))
-        except:
+        if not self.p.newConnection((chosenIP, 54321)):
             self.label.setText("The server at the chosen IP dosen't exist")
-            print("dosent exist")  
-            self.p.setpCon("")
+            #print("dosent exist")  
+
     
     def closeMe(self):
         self.p.popUpExists=False

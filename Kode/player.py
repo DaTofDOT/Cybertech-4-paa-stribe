@@ -13,8 +13,8 @@ class player(QMainWindow):
         super().__init__()
         central = QWidget(self)
         self.setCentralWidget(central)
-        self.control_msg, self.turn, self.newestPieceIndex, self.playerIs = 0,0,-1,0
-        self.board = "0" * 42
+        self.initGame()
+
         self.winStats = gamesLogger()
         
         # font
@@ -69,7 +69,14 @@ class player(QMainWindow):
         
         
         self.show()
+        
+    
+    def initGame(self):
+        self.control_msg, self.turn, self.newestPieceIndex, self.playerIs = 0,0,-1,0
+        self.board = "0" * 42
+        
         self.controller=game.gameController(self)
+        
     
     def resizeEvent(self, event):
         # Ensure buttons resize properly during window resize
@@ -144,21 +151,6 @@ class player(QMainWindow):
         
         # Update QLabel with HTML content
         self.info_label.setText(f"<p>You are <img src='{img_path}' width='24' height='24'><br>{turn_text}</p>")
-        
-
-    def update_turn_info(self):
-        if self.playerIs == "1":
-            img_path = os.path.join(".", "assets", "RedCircle.png")
-        elif self.playerIs == "2":
-            img_path = os.path.join(".", "assets", "YellowCircle.png")
-
-        if self.turn == int(self.playerIs):
-            turn_text = "Your Turn"
-        else:
-            turn_text = "Opponent's Turn"
-        
-        # Update QLabel with HTML content
-        self.info_label.setText(f"<p>You are <img src='{img_path}' width='24' height='24'><br>{turn_text}</p>")
     
     def reset_game_box(self, win_text):
         # TODO 
@@ -200,9 +192,17 @@ class player(QMainWindow):
         if msg_box.clickedButton() == play_again_button:
             print("Play Again clicked!")
             # Add functionality here
+            if self.controller.newConnection(False): #opretter en ny forbindelse til den gamle adresse
+                self.initGame()
+                msg_box.close()
+            else:
+                msg_box.setText("Server no longer exists (。﹏。*)")
+                
         elif msg_box.clickedButton() == new_game_button:
             #print("New Game clicked!")
+            self.initGame()
             self.controller.newGame()
+            msg_box.close()
             
         elif msg_box.clickedButton() == quit_button:
             #print("Quit clicked!")
@@ -215,52 +215,11 @@ class player(QMainWindow):
         self.controller.closeMe()
         self.winStats.saveData()
         self.close()
-    """
-    def reset_game_box(self, win_text):
-        # TODO 
-        # update stats
-        # button functionality
 
-        # popup after game completion
-        msg_box = QMessageBox(self)
-        # Add buttons
-        play_again_button = msg_box.addButton("Play Again", QMessageBox.ButtonRole.ActionRole)
-        new_game_button = msg_box.addButton("New Game", QMessageBox.ButtonRole.ActionRole)
-        quit_button = msg_box.addButton("Quit", QMessageBox.ButtonRole.RejectRole)
 
-        if f"{self.playerIs} WINS" in win_text:
-            # self.wins += 1   -> update file
-            win_text = "You win! :)"
-            msg_box.setIcon(QMessageBox.Icon.Information)
-        elif "NOBODY WINS" in win_text:
-            # self.ties += 1   -> update file
-            win_text = "It's a tie! :|"
-            msg_box.setIcon(QMessageBox.Icon.Question)
-        else:
-            # self.losses += 1   -> update file
-            win_text = "You lose! :("
-            msg_box.setIcon(QMessageBox.Icon.Critical)
-        
-        self.stats_label.setText(f"{self.winStats.total_games}\n{self.winStats.wins}\n{self.winStats.losses}\n{self.winStats.draws}")
 
-        msg_box.setWindowIcon(QIcon(os.path.join(".","assets","Logo.png")))
-        msg_box.setWindowTitle(win_text)
-        msg_box.setText(win_text + "\nNew game?")
-        msg_box.exec()
-        
 
-        if msg_box.clickedButton() == play_again_button:
-            print("Play Again clicked!")
-            # Add functionality here
-        elif msg_box.clickedButton() == new_game_button:
-            #print("New Game clicked!")
-            self.controller.newGame()
-            
-        elif msg_box.clickedButton() == quit_button:
-            #print("Quit clicked!")
-            msg_box.close()
-            self.closeEvent()
-        """
+
 
 
 
