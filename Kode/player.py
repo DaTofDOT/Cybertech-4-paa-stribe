@@ -106,10 +106,14 @@ class player(QMainWindow):
         
         self.update_board(self.board)
         self.update_turn_info()
+        
+        if "WINS" in self.control_msg:
+            self.reset_game_box(self.control_msg)
+            
         self.debug_label.setText(f"Control: {self.control_msg}\nTurn: {self.turn}\nBoard: {self.board}\nNewest piece index: {self.newestPieceIndex}            You are {self.playerIs}")
         
     def update_board(self, board):
-        for i in range(42):
+        for i in range(len(self.btns)):
             button_size = self.btns[i].size()
             icon_size = QSize(int(button_size.height() * 0.75), int(button_size.height() * 0.75))
             try:
@@ -149,7 +153,6 @@ class player(QMainWindow):
     
     def reset_game_box(self, win_text):
         # TODO 
-        # update stats
         # button functionality
 
         # popup after game completion
@@ -160,17 +163,22 @@ class player(QMainWindow):
         quit_button = msg_box.addButton("Quit", QMessageBox.ButtonRole.RejectRole)
 
         if f"{self.playerIs} WINS" in win_text:
-            # self.wins += 1   -> update file
+            self.winStats.addToVariable("wins")
             win_text = "You win! :)"
             msg_box.setIcon(QMessageBox.Icon.Information)
+            
+        
         elif "NOBODY WINS" in win_text:
-            # self.ties += 1   -> update file
+            self.winStats.addToVariable("draws")
             win_text = "It's a tie! :|"
             msg_box.setIcon(QMessageBox.Icon.Question)
+        
+        
         else:
-            # self.losses += 1   -> update file
+            self.winStats.addToVariable("losses")
             win_text = "You lose! :("
             msg_box.setIcon(QMessageBox.Icon.Critical)
+        
         
         self.stats_label.setText(f"{self.winStats.total_games}\n{self.winStats.wins}\n{self.winStats.losses}\n{self.winStats.draws}")
 
@@ -194,6 +202,7 @@ class player(QMainWindow):
 
 
     def closeEvent(self, a0=0):
+        self.winStats.saveData()
         self.controller.closeMe()
         self.close()
     
@@ -230,10 +239,24 @@ class gamesLogger():
         self.total_games = self.wins + self.losses + self.draws
         txtFil.close()
     
+    def addToVariable(self, variable:str =""):
+        
+        if variable == "wins":
+            self.wins += 1
+        elif variable == "losses":
+            self.losses += 1
+        elif variable == "draws":
+            self.draws += 1
+        else:
+            return False
+        
+        self.total_games += 1
+        self.saveData()
+        return True
     
 
     
     def saveData(self):
         txtFil = open(os.path.join(".","Data","winStats.txt"), "w")
-        txtFil.writelines((str(self.wins), str(self.losses), str(self.draws)))
+        txtFil.write((str(self.wins)+"\n"+str(self.losses)+"\n"+str(self.draws)))
         txtFil.close()

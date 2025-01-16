@@ -142,7 +142,7 @@ class serverGame():
                 print("recived message wasn't an int")
                 return
 
-            newMessage = "\n\r".join(str(x) for x in self.gameTracker.play_move(column))+"\n\r"
+            newMessage = "\n\r".join(str(x) for x in self.gameTracker.play_move(column))
             self.p1Con.send(newMessage)
             self.p2Con.send(newMessage)
         
