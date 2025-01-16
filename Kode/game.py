@@ -4,7 +4,7 @@ import socket as s
 
 from PyQt6.QtCore import Qt, QSize, pyqtSignal
 from PyQt6.QtGui import QIcon
-import os
+import os, time
 from PyQt6.QtWidgets import *
 
 class gameController(QWidget):
@@ -92,6 +92,7 @@ class gameController(QWidget):
         if self.pCon != "":
             self.pCon.closeMe()
         if self.localServerExists:
+            time.sleep(0.02)
             self.server.closeMe()
         self.closePopUpSignal.emit("")
         super().close()
