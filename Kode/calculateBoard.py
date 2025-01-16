@@ -88,4 +88,3 @@ class calculateBoard():
                         if count == 4:  # Found a winning line
                             return True
         return False
-

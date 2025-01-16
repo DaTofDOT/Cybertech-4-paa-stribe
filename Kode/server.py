@@ -102,13 +102,16 @@ class serverGame():
         self.keepAlive = True
 
         initial=f"OK\n\r{self.gameTracker.player_num}\n\r{self.gameTracker.board_str}\n\r-1"
+        
         self.p1Con.send(initial)
         self.p2Con.send(initial)
         
         
     
     def connectionCloseFunction(self, sender):
-        
+        '''
+        If an connection is closed from the other side call this
+        '''
         if self.keepAlive:
             self.closeMe()
     
@@ -142,7 +145,6 @@ class serverGame():
         """
         Closes this game server and its associated connections.
 
-        This method is called when both players have closed their connections to the server.
         It sends a final message to both players indicating the outcome of the game, and then closes the connections.
         Finally, it removes itself from the list of ongoing games in the overarching server object.
         """
