@@ -241,23 +241,21 @@ class player(QMainWindow):
         msg_box.exec()
 
         if msg_box.clickedButton() == play_again_button:
-            if self.controller.newConnection(False): #opretter en ny forbindelse til den gamle adresse
-                self.initGame()
-                self.update_board()
-                self.info_label.setText("FOUR! in one Row\n(or Diagonal(or Column))")
-                msg_box.close()
-            else:
-                msg_box.setText("Server no longer exists (。﹏。*)")
-                
-        elif msg_box.clickedButton() == new_game_button:
+            #print("Play Again clicked!")
             self.initGame()
             self.update_board()
-            self.controller.newGame()
             self.info_label.setText("FOUR! in one Row\n(or Diagonal(or Column))")
-            msg_box.close()
+            self.controller.newGame(True)
+                
+        elif msg_box.clickedButton() == new_game_button:
+            
+            self.initGame()
+            self.update_board()
+            self.controller.newGame(False)
+            self.info_label.setText("FOUR! in one Row\n(or Diagonal(or Column))")
+            
             
         elif msg_box.clickedButton() == quit_button:
-            msg_box.close()
             self.closeEvent()
 
 

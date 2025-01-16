@@ -19,9 +19,10 @@ class connection():
                 
             if receivedData == b'' or  "PLZ-LUK-FORBINDELSE" in receivedData.decode(): #connection closed from the other side
                 self.connection.close()
-                self.keepAlive = False
-                if self.closeFunction:
+                if self.closeFunction and self.keepAlive: #only call closing function if closed from other side
                     self.closeFunction(self)
+                self.keepAlive = False
+
             else:
                 self.receiveFunction(self, receivedData.decode())
 
