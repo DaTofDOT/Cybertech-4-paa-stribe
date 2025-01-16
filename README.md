@@ -32,6 +32,7 @@ pip install PyQt6
 
 ## Game Flow
 The game flows as expected, by players alternating turns as show in the game.
+Take your turn by pressing a button on the game UI, only the buttons column matter.  
 
 - **Game End Options:**
   After a game is finished, players are presented with three options:
