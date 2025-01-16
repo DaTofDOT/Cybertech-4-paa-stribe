@@ -39,26 +39,18 @@ class player(QMainWindow):
         self.stats_label = QLabel(f"{self.winStats.total_games}\n{self.winStats.wins}\n{self.winStats.losses}\n{self.winStats.draws}")
         self.stats_label.setFont(stat_font)
         self.stats_label.setMaximumHeight(100)
-
-
-
-        # 2 (debug)
-        self.debug_label = QLabel("Debug") # info label
+        # self.debug_label = QLabel("Debug") # info label
         # self.debug_label.setFont(info_font)
-        self.debug_label.setMaximumHeight(100)
+        # self.debug_label.setMaximumHeight(100)
 
         # info bar
         self.info_bar_top = QHBoxLayout()
         self.info_bar_top.addWidget(self.info_label, 4)
         self.info_bar_top.addWidget(self.stat_info_label, 2)
         self.info_bar_top.addWidget(self.stats_label, 1)
-        self.info_bar_top.addWidget(self.debug_label, 2)
 
-        self.board = "0" * 42
         self.calculate_board = calculateBoard.calculateBoard()
 
-
-        
 
         # Game board
         self.btns = [SquareButton() for _ in range(42)]
@@ -82,7 +74,7 @@ class player(QMainWindow):
     def resizeEvent(self, event):
         # Ensure buttons resize properly during window resize
         self.updateGeometry()  # Force the layout to update and recheck button sizes
-        self.update_board(self.board)
+        self.update_board()
         super().resizeEvent(event)
 
     def handle_button_click(self, idx:int):
@@ -92,7 +84,7 @@ class player(QMainWindow):
     def newDataFromServer(self, signalValue = ""):
         lines = signalValue
         if len(lines) >= 4:
-            self.control_msg, self.board = lines[0].strip(),  lines[2].strip(), 
+            self.control_msg, self.board = lines[0].strip(),  lines[2].strip()
             try: 
                 self.turn  = int(lines[1].strip())
             except:
@@ -104,38 +96,55 @@ class player(QMainWindow):
         else:
             self.control_msg = str(lines)
         
-        self.update_board(self.board)
+        self.update_board()
         self.update_turn_info()
         
         if "WINS" in self.control_msg:
+            self.controller.setpCon("")
             self.reset_game_box(self.control_msg)
-            
-        self.debug_label.setText(f"Control: {self.control_msg}\nTurn: {self.turn}\nBoard: {self.board}\nNewest piece index: {self.newestPieceIndex}            You are {self.playerIs}")
         
-    def update_board(self, board):
-        for i in range(len(self.btns)):
+        #self.debug_label.setText(f"Control: {self.control_msg}\nTurn: {self.turn}\nBoard: {self.board}\nNewest piece index: {self.newestPieceIndex}            You are {self.playerIs}")
+        
+        
+    def update_board(self):
+        for i in range(42):
             button_size = self.btns[i].size()
             icon_size = QSize(int(button_size.height() * 0.75), int(button_size.height() * 0.75))
             try:
-                if i == self.newestPieceIndex:
-                    self.btns[i].setStyleSheet("background-color: green")
-                else:
-                    self.btns[i].setStyleSheet("")
+                if self.newestPieceIndex != -1:
+                    if i == self.newestPieceIndex:
+                        self.btns[i].setStyleSheet("background-color: green")
+                    else:
+                        self.btns[i].setStyleSheet("")
             except:
                 pass
             
-            if board[i] == "0":
+            if self.board[i] == "0":
                 self.btns[i].setText("")  # Clear text if the cell is empty
                 self.btns[i].setIcon(QIcon())  # Remove icon if no piece
-            if board[i] == "1":
+            if self.board[i] == "1":
                 self.btns[i].setText("")  # Clear text for consistency
-                self.btns[i].setIcon(QIcon("./assets/RedCircle.png"))  # Red circle icon
+                self.btns[i].setIcon(QIcon(os.path.join(".","assets","RedCircle.png")))  # Red circle icon
                 self.btns[i].setIconSize(QSize(icon_size))  # Set icon size
-            elif board[i] == "2":
+            elif self.board[i] == "2":
                 self.btns[i].setText("")  # Clear text for consistency
-                self.btns[i].setIcon(QIcon("./assets/YellowCircle.png"))  # Yellow circle icon
-                self.btns[i].setIconSize(QSize(icon_size))  # Set icon size)
+                self.btns[i].setIcon(QIcon(os.path.join(".","assets","YellowCircle.png")))  # Yellow circle icon
+                self.btns[i].setIconSize(QSize(icon_size))  # Set icon size
             
+    def update_turn_info(self):
+        if self.playerIs == "1":
+            img_path = os.path.join(".", "assets", "RedCircle.png")
+        elif self.playerIs == "2":
+            img_path = os.path.join(".", "assets", "YellowCircle.png")
+
+        if self.turn == self.playerIs:
+            turn_text = "Your Turn"
+        else:
+            turn_text = "Opponent's Turn"
+        
+        # Update QLabel with HTML content
+        self.info_label.setText(f"<p>You are <img src='{img_path}' width='24' height='24'><br>{turn_text}</p>")
+        
 
     def update_turn_info(self):
         if self.playerIs == "1":
@@ -204,14 +213,61 @@ class player(QMainWindow):
     def closeEvent(self, a0=0):
         self.winStats.saveData()
         self.controller.closeMe()
+        self.winStats.saveData()
         self.close()
-    
+    """
+    def reset_game_box(self, win_text):
+        # TODO 
+        # update stats
+        # button functionality
+
+        # popup after game completion
+        msg_box = QMessageBox(self)
+        # Add buttons
+        play_again_button = msg_box.addButton("Play Again", QMessageBox.ButtonRole.ActionRole)
+        new_game_button = msg_box.addButton("New Game", QMessageBox.ButtonRole.ActionRole)
+        quit_button = msg_box.addButton("Quit", QMessageBox.ButtonRole.RejectRole)
+
+        if f"{self.playerIs} WINS" in win_text:
+            # self.wins += 1   -> update file
+            win_text = "You win! :)"
+            msg_box.setIcon(QMessageBox.Icon.Information)
+        elif "NOBODY WINS" in win_text:
+            # self.ties += 1   -> update file
+            win_text = "It's a tie! :|"
+            msg_box.setIcon(QMessageBox.Icon.Question)
+        else:
+            # self.losses += 1   -> update file
+            win_text = "You lose! :("
+            msg_box.setIcon(QMessageBox.Icon.Critical)
+        
+        self.stats_label.setText(f"{self.winStats.total_games}\n{self.winStats.wins}\n{self.winStats.losses}\n{self.winStats.draws}")
+
+        msg_box.setWindowIcon(QIcon(os.path.join(".","assets","Logo.png")))
+        msg_box.setWindowTitle(win_text)
+        msg_box.setText(win_text + "\nNew game?")
+        msg_box.exec()
+        
+
+        if msg_box.clickedButton() == play_again_button:
+            print("Play Again clicked!")
+            # Add functionality here
+        elif msg_box.clickedButton() == new_game_button:
+            #print("New Game clicked!")
+            self.controller.newGame()
+            
+        elif msg_box.clickedButton() == quit_button:
+            #print("Quit clicked!")
+            msg_box.close()
+            self.closeEvent()
+        """
+
+
 
 class SquareButton(QPushButton): 
     def sizeHint(self) -> QSize:
         size = super().sizeHint()
         return QSize(min(size.width(), size.height()), min(size.width(), size.height()))
-
 
 class gamesLogger():
     def __init__(self):

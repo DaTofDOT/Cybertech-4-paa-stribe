@@ -1,8 +1,10 @@
-import playerConnection, server
+import connection, server
 import socket as s
 
 
 from PyQt6.QtCore import Qt, QSize, pyqtSignal
+from PyQt6.QtGui import QIcon
+import os
 from PyQt6.QtWidgets import *
 
 class gameController(QWidget):
@@ -16,15 +18,12 @@ class gameController(QWidget):
         super().__init__()
         self.p=p
         self.localServerExists = False
-        self.popUp = startPopUp(self)
-        self.popUp.show()
-        self.popUpExists = True
-        self.pCon, self.lines = "", []
-        self.closePopUpSignal.connect(self.closePopUp)
         self.newServerDataSignal.connect(self.p.newDataFromServer)
+        self.closePopUpSignal.connect(self.closePopUp)
+        self.newGame()
     
     def receiveData(self, sender, receivedStr:str):
-        print("Modtaget"+receivedStr+"!")
+        #print("Modtaget"+receivedStr+"!")
         if "YOU ARE" in receivedStr:
             self.p.playerIs = receivedStr[8] #should be either "1" or "2"
             if self.popUpExists:
@@ -34,13 +33,19 @@ class gameController(QWidget):
             
         elif "@" in receivedStr:
             pass
-            #modtaget serverrens velkommen besked med ip 
+            #modtaget serverens velkommen besked med ip 
+        elif "WINS" in receivedStr:
+            self.lines = receivedStr.split()
+            self.newServerDataSignal.emit(self.lines)
         else:
             self.lines = receivedStr.split("\n\r")
             self.newServerDataSignal.emit(self.lines)
         
     def newGame(self):
-        pass
+        self.popUp = startPopUp(self)
+        self.popUp.show()
+        self.popUpExists = True
+        self.pCon, self.lines = "", []    
     
     def closePopUp(self):
         if self.popUpExists:
@@ -76,6 +81,7 @@ class startPopUp(QWidget):
         
         #self.setCentralWidget(central)
         self.setWindowTitle("Start-spil")
+        self.setWindowIcon(QIcon(os.path.join(".","assets","Logo.png")))
         
         self.label=QLabel()
         self.label.setText("Select button")
@@ -105,7 +111,7 @@ class startPopUp(QWidget):
             self.p.createServer()
             socket = s.socket(s.AF_INET, s.SOCK_STREAM)
             socket.connect(("127.0.0.1", 54321))
-            self.p.setpCon(playerConnection.connection(socket, self.p.receiveData)) 
+            self.p.setpCon(connection.connection(socket, self.p.receiveData)) 
             self.label.setText("Local server created, awaiting player 2")
         
         self.txtEditor.setText(self.p.server.myIP)
@@ -119,14 +125,15 @@ class startPopUp(QWidget):
             self.p.localServerExists = False
         
         chosenIP=self.txtEditor.toPlainText()
+
         if chosenIP == "":
             chosenIP = "127.0.0.1"
             self.txtEditor.setText("127.0.0.1")
-        
+            
         try:
             socket = s.socket(s.AF_INET, s.SOCK_STREAM)
             socket.connect((chosenIP, 54321))
-            self.p.setpCon(playerConnection.connection(socket, self.p.receiveData))
+            self.p.setpCon(connection.connection(socket, self.p.receiveData))
         except:
             self.label.setText("The server at the chosen IP dosen't exist")
             print("dosent exist")  

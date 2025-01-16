@@ -28,13 +28,12 @@ class connection():
     def send(self, data:str):
         try:
             self.connection.sendall(data.encode())
-            print("sendte dette data: "+ data+" :")
+            #print("sendte dette data: "+ data+" :")
         except:
-            print("sendte IKKE dette data: "+ data+" :")
+            #print("sendte IKKE dette data: "+ data+" :")
+            pass
     
     def closeMe(self):
-        self.keepAlive = False
-        self.send("PLZ-LUK-FORBINDELSE")
-
-        #self.connection.close() # may course crash
-    
+        if self.keepAlive:
+            self.keepAlive = False
+            self.send("PLZ-LUK-FORBINDELSE")

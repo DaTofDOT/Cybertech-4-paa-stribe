@@ -3,7 +3,7 @@ import socket as s
 import time
 import calculateBoard
 
-import playerConnection
+import connection
 
 class host():
     def __init__(self, port = 54321):
@@ -32,7 +32,7 @@ class host():
         
         while self.keepAlive:
             newTCPconn, addr = self.listeningSocket.accept()#blokere indtil ny forbindelse
-            print("newConection To server")
+            print("new connection To server")
             newTCPconn.sendall(("WELCOME TO 4-IN-A-ROW @ "+self.myIP).encode())
             self.currentConnections.append(newTCPconn)
             if len(self.currentConnections) >= 2:
@@ -109,31 +109,31 @@ class serverMessage():
 class serverGame():
     def __init__(self, p:host, players:tuple|list):
         self.overServer = p
-        self.keepAlive = True
+        self.keepAlive = False
         self.gameTracker = calculateBoard.calculateBoard()
         
         p1 , p2 = players
-        try:
-            self.p1Con = playerConnection.connection(p1, self.receivedNewMessage, self.connectionCloseFunction)
-            self.p1Con.send("YOU ARE 1")
-        except:
-            print("player1 virker ikke")
-            
-        try:
-            self.p2Con = playerConnection.connection(p2, self.receivedNewMessage, self.connectionCloseFunction)
-            self.p2Con.send("YOU ARE 2")
-        except:
-            print("player2 virker ikke")
+
+
+        self.p1Con = connection.connection(p1, self.receivedNewMessage, self.connectionCloseFunction)
+        self.p2Con = connection.connection(p2, self.receivedNewMessage, self.connectionCloseFunction)
+  
+        self.p1Con.send("YOU ARE 1\n\r")  
+        self.p2Con.send("YOU ARE 2\n\r")
+        
+        self.keepAlive = True
+
         initial=f"OK\n\r{self.gameTracker.player_num}\n\r{self.gameTracker.board_str}\n\r-1"
         self.p1Con.send(initial)
         self.p2Con.send(initial)
+        
         
     
     def connectionCloseFunction(self, sender):
         if self.keepAlive:
             self.closeMe()
     
-    def receivedNewMessage(self, sender:playerConnection.connection, message:str):
+    def receivedNewMessage(self, sender:connection.connection, message:str):
         if ((sender == self.p1Con and self.gameTracker.player_num == 1) or 
             (sender == self.p2Con and self.gameTracker.player_num == 2 )):
             try:
@@ -150,7 +150,7 @@ class serverGame():
         
     def closeMe(self):
         self.keepAlive = False
-        message = "NOBODY WINS\n\r"+str(self.gameTracker.player_num)+"\n\r"+self.gameTracker.board_str+"\n\r-1"
+        message = "NOBODY WINS\n\r"+str(self.gameTracker.player_num)+"\n\r"+self.gameTracker.board_str+"\n\r-1\n\r"
         self.p1Con.send(message)
         self.p2Con.send(message)
         
