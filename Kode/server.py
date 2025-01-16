@@ -23,7 +23,10 @@ class host():
         t.start()
                 
     def removeMeFromOngoingGames(self, klasse):
-        self.ongoingGames.remove(klasse)
+        try:
+            self.ongoingGames.remove(klasse)
+        except:
+            pass
                 
     def run(self):
         self.keepAlive =True

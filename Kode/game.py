@@ -122,16 +122,28 @@ class startPopUp(QWidget):
     def hostHandler(self):
         if self.p.localServerExists:
             self.label.setText("Local server already exists, awaiting player 2")
+            self.txtEditor.setText(self.p.server.myIP)
             
         else:
             try:
                 self.p.createServer()
                 self.txtEditor.setText(self.p.server.myIP)
+                self.label.setText("Local server at the IP below, awaiting player 2")
             except:
                 self.label.setText("Local server already exists in another window.")
-            self.p.newConnection(("127.0.0.1", 54321))
+                return None
             
-        self.label.setText("Local server at the IP below, awaiting player 2")
+        if self.p.pCon == "":
+            self.p.newConnection(("127.0.0.1", 54321))
+        else:
+            if self.p.address != ("127.0.0.1", 54321):
+                self.p.newConnection(("127.0.0.1", 54321))
+            else:
+                self.label.setText("Already connected to local server, awaiting player 2")
+                
+                
+            
+        
         
         
 
@@ -142,7 +154,7 @@ class startPopUp(QWidget):
             self.p.server.closeMe()
             self.p.localServerExists = False
         
-        chosenIP=self.txtEditor.toPlainText()
+        chosenIP=self.txtEditor.toPlainText().strip()
 
         if chosenIP == "":
             chosenIP = "127.0.0.1"

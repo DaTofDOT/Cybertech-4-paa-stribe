@@ -191,7 +191,7 @@ class player(QMainWindow):
         msg_box.exec()
 
         if msg_box.clickedButton() == play_again_button:
-            print("Play Again clicked!")
+            #print("Play Again clicked!")
             # Add functionality here
             if self.controller.newConnection(False): #opretter en ny forbindelse til den gamle adresse
                 self.initGame()
