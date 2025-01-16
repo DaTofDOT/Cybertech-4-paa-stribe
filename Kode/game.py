@@ -162,6 +162,9 @@ class startPopUp(QWidget):
             
         if not self.p.newConnection((chosenIP, 54321)):
             self.label.setText("The server at the chosen IP dosen't exist")
+        else:
+            self.label.setText("Succesfully connected to the server")
+            
             #print("dosent exist")  
 
     def closeEvent(self, a0 = 0):
