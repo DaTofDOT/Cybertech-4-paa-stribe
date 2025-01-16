@@ -24,6 +24,20 @@ class gameController(QWidget):
         self.newGame()
     
     def receiveData(self, sender, receivedStr:str):
+        """
+        Processes the received data string from the server, updating player information
+        and emitting signals based on the content.
+
+        Parameters:
+        - sender: The source sending the data.
+        - receivedStr: str, the data string received from the server.
+
+        This function splits the received string into lines and processes them. It removes
+        empty lines and handles specific messages such as "YOU ARE" to set the player's
+        identifier, and "@" to acknowledge welcome messages. For any other data, it emits
+        the newServerDataSignal with the processed lines.
+        """
+
         self.lines = receivedStr.split("\n\r")
         #print("Modtaget"+receivedStr+"!")
         #print("har modtaget dette data", self.lines)
@@ -50,6 +64,19 @@ class gameController(QWidget):
         self.receiveData(self, "NOBODY WINS\n\r"+"1"+"\n\r"+self.p.board+"\n\r-1")
             
     def newConnection(self, address:tuple|bool):
+        """
+        Establishes a new connection to a server as a player. If address is given, it
+        stores the address and attempts to connect to it. Otherwise, it attempts to connect
+        to the stored address. On success, it sets the player connection and returns True.
+        On failure, it clears the player connection and returns False.
+
+        Parameters:
+        - address: tuple|bool, the address of the server to connect to. If False, the
+            stored address is used.
+
+        Returns:
+        - bool, True if the connection was successful, False otherwise.
+        """
         if address:
             self.address = address
         try:
@@ -66,6 +93,16 @@ class gameController(QWidget):
     
             
     def newGame(self, tryJoiningAddress = False):
+        """
+        Initializes a new game by creating a startPopUp and connecting its signals as
+        necessary. If tryJoiningAddress is True, the startPopUp is passed the stored
+        address and the joinPopUpSignal is connected to either the hostHandler or
+        joinHandler depending on whether a local server exists.
+
+        Parameters:
+        - tryJoiningAddress: bool, whether to attempt to join the stored address.
+
+        """
         if tryJoiningAddress:
             self.popUp = startPopUp(self, self.address)
             if self.localServerExists:
@@ -106,12 +143,27 @@ class gameController(QWidget):
             self.pCon.send(string) 
     
     def setpCon(self, var):
+        """
+        Sets the pCon variable to the given connection object, first closing the current
+        connection if it exists.
+
+        Parameters:
+        - var: connection, the new connection object to be set as pCon
+        """
         if self.pCon != "":
             self.pCon.closeMe()
         self.pCon = var
 
 class startPopUp(QWidget):
     def __init__(self, p:gameController, address = False):
+        """
+        Initializes the startPopUp object.
+
+        Parameters:
+        - p: gameController, the parent gameController object
+        - address: tuple, an optional address tuple to be used as the default address in the text box
+        """
+
         self.p=p
         super().__init__()
         #central = QWidget(self)
@@ -143,6 +195,19 @@ class startPopUp(QWidget):
         self.setBaseSize(QSize(800, 600))
     
     def hostHandler(self):
+        """
+        Handles the hosting of a local server for the game.
+
+        This method checks if a local server already exists. If it does, it updates the label and text editor
+        to inform the user and display the server's IP address. If a local server does not exist, it attempts
+        to create one and update the UI accordingly. If server creation fails, it notifies the user.
+
+        It also manages the player's connection to the server. If no player connection exists, it establishes
+        a new connection to the local server. If a connection exists but is not to the local server, it
+        reconnects to the local server. If already connected to the local server, it updates the label
+        to indicate that the server is awaiting a second player.
+        """
+
         if self.p.localServerExists:
             self.label.setText("Local server already exists, awaiting player 2")
             self.txtEditor.setText(self.p.server.myIP)
@@ -167,6 +232,20 @@ class startPopUp(QWidget):
 
 
     def joinHandler(self, a0=0):
+        """
+        Handles the joining of a game on a remote server.
+
+        First, closes any existing local server. Then, attempts to connect to the server at the
+        IP address specified in the text editor. If the connection is successful, updates the
+        label to indicate that the connection was successful. If the connection fails, updates
+        the label to indicate that the server does not exist.
+
+        Parameters:
+        - a0: str, the value of the signal that triggered this function (not used)
+
+        Returns:
+        - None
+        """
         if self.p.localServerExists:
             self.label.setText("Closing local server")
             self.p.server.closeMe()

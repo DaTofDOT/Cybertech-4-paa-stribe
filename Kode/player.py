@@ -90,9 +90,7 @@ class player(QMainWindow):
         """
         self.control_msg, self.turn, self.newestPieceIndex, self.playerIs = 0,0,-1,0
         self.board = "0" * 42
-        #self.calculate_board = calculateBoard.calculateBoard() for testing
-        
-        
+
         
     
     def resizeEvent(self, event):
@@ -172,16 +170,18 @@ class player(QMainWindow):
                 pass
             
             if self.board[i] == "0":
-                self.btns[i].setText("")  # Clear text if the cell is empty
-                self.btns[i].setIcon(QIcon())  # Remove icon if no piece
+                self.btns[i].setText("")
+                self.btns[i].setIcon(QIcon())
+
             if self.board[i] == "1":
-                self.btns[i].setText("")  # Clear text for consistency
-                self.btns[i].setIcon(QIcon(os.path.join(".","assets","RedCircle.png")))  # Red circle icon
-                self.btns[i].setIconSize(QSize(icon_size))  # Set icon size
+                self.btns[i].setText("")
+                self.btns[i].setIcon(QIcon(os.path.join(".","assets","RedCircle.png")))
+                self.btns[i].setIconSize(QSize(icon_size))
+
             elif self.board[i] == "2":
-                self.btns[i].setText("")  # Clear text for consistency
-                self.btns[i].setIcon(QIcon(os.path.join(".","assets","YellowCircle.png")))  # Yellow circle icon
-                self.btns[i].setIconSize(QSize(icon_size))  # Set icon size
+                self.btns[i].setText("")
+                self.btns[i].setIcon(QIcon(os.path.join(".","assets","YellowCircle.png")))
+                self.btns[i].setIconSize(QSize(icon_size))
             
     def update_turn_info(self):
         """
@@ -200,6 +200,7 @@ class player(QMainWindow):
         # Update QLabel with HTML content
         self.info_label.setText(f"<p>You are <img src='{img_path}' width='24' height='24'><br>{turn_text}</p>")
     
+
     def reset_game_box(self, win_text):
         """
         Pops up a message box after the game is completed, displaying the result of the game and providing options to play again, start a new game, or quit the program.
@@ -240,8 +241,8 @@ class player(QMainWindow):
         msg_box.setText(win_text + "\nNew game?")
         msg_box.exec()
 
+        # handle button clicks
         if msg_box.clickedButton() == play_again_button:
-            #print("Play Again clicked!")
             self.initGame()
             self.update_board()
             self.info_label.setText("FOUR! in one Row\n(or Diagonal(or Column))")

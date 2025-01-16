@@ -2,7 +2,17 @@ import socket as s
 from threading import Thread
 
 class connection():
-    def __init__(self , TCPconnection, receiveFunction, closeFunction = False): #, closeFunction?
+    def __init__(self , TCPconnection, receiveFunction, closeFunction = False):
+        """
+        Constructor for a new connection object.
+
+        Parameters:
+        - TCPconnection: socket object, the underlying connection.
+        - receiveFunction: function, called when new data is received from the connection.
+        - closeFunction: function, called when the connection is closed. Defaults to False if not specified.
+
+        This constructor sets up the connection and starts a new thread that calls the receiveRun method of this class.
+        """
         self.connection = TCPconnection
         self.receiveFunction = receiveFunction
         self.closeFunction = closeFunction
@@ -10,6 +20,14 @@ class connection():
         t.start()
     
     def receiveRun(self):
+        """
+        Continuously receives data from the connection and processes it.
+
+        This method runs in a loop as long as the connection is alive. It attempts to receive data from the 
+        socket. If data is received, the receiveFunction is called with the decoded data. If the connection 
+        is closed from the other side or a termination message is received, it closes the connection, calls 
+        the closeFunction if specified, and stops the loop.
+        """
         self.keepAlive = True
         while self.keepAlive:
             try:
@@ -29,9 +47,7 @@ class connection():
     def send(self, data:str):
         try:
             self.connection.sendall(data.encode())
-            #print("sendte dette data: "+ data+" :")
         except:
-            #print("sendte IKKE dette data: "+ data+" :")
             pass
     
     def closeMe(self):
