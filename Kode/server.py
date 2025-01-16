@@ -31,20 +31,24 @@ class host():
         self.ongoingGames = []
         
         while self.keepAlive:
-            newTCPconn, addr = self.listeningSocket.accept()#blokere indtil ny forbindelse
-            print("new connection To server")
-            newTCPconn.sendall(("WELCOME TO 4-IN-A-ROW @ "+self.myIP).encode())
-            self.currentConnections.append(newTCPconn)
-            if len(self.currentConnections) >= 2:
-                p1=self.currentConnections.pop(0)
-                p2=self.currentConnections.pop(0)
-                self.ongoingGames.append(serverGame(self, (p1, p2)))
-    
+            try:
+                newTCPconn, addr = self.listeningSocket.accept()#blokere indtil ny forbindelse
+                print("new connection To server")
+                newTCPconn.sendall(("WELCOME TO 4-IN-A-ROW @ "+self.myIP+"\n\r").encode())
+                self.currentConnections.append(newTCPconn)
+                if len(self.currentConnections) >= 2:
+                    p1=self.currentConnections.pop(0)
+                    p2=self.currentConnections.pop(0)
+                    self.ongoingGames.append(serverGame(self, (p1, p2)))
+            except:
+                pass
+
+
     def closeMe(self):
         self.keepAlive = False
-        tempSocket = s.socket(s.AF_INET, s.SOCK_STREAM)
-        tempSocket.connect(("127.0.0.1", self.port))
-        tempSocket.close()
+        #tempSocket = s.socket(s.AF_INET, s.SOCK_STREAM)
+        #tempSocket.connect(("127.0.0.1", self.port))
+        #tempSocket.close()
         self.listeningSocket.close()
         time.sleep(0.02)
         originalLen=(len(self.ongoingGames))
@@ -79,6 +83,7 @@ class serverGame():
         
     
     def connectionCloseFunction(self, sender):
+        
         if self.keepAlive:
             self.closeMe()
     
@@ -99,10 +104,23 @@ class serverGame():
         
     def closeMe(self):
         self.keepAlive = False
-        message = "NOBODY WINS\n\r"+str(self.gameTracker.player_num)+"\n\r"+self.gameTracker.board_str+"\n\r-1\n\r"
+        time.sleep(0.02) #vent på at alle forbindelser lukker
+        if self.p1Con.keepAlive == True and self.p2Con == True:
+            
+            message = "NOBODY WINS\n\r"+str(self.gameTracker.player_num)+"\n\r"+self.gameTracker.board_str+"\n\r-1"
+
+        elif self.p1Con.keepAlive == True:
+            message = "1 WINS\n\r"+str(self.gameTracker.player_num)+"\n\r"+self.gameTracker.board_str+"\n\r-1"
+
+        elif self.p2Con.keepAlive == True: 
+            message = "2 WINS\n\r"+str(self.gameTracker.player_num)+"\n\r"+self.gameTracker.board_str+"\n\r-1"
+        else: #begge forbindelser er lukkede
+            message = ""
+ 
         self.p1Con.send(message)
         self.p2Con.send(message)
         
         self.p1Con.closeMe()
         self.p2Con.closeMe()
+        
         self.overServer.removeMeFromOngoingGames(self)

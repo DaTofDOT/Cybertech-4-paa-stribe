@@ -14,7 +14,7 @@ class player(QMainWindow):
         central = QWidget(self)
         self.setCentralWidget(central)
         self.initGame()
-
+        
         self.winStats = gamesLogger()
         
         # font
@@ -49,8 +49,6 @@ class player(QMainWindow):
         self.info_bar_top.addWidget(self.stat_info_label, 2)
         self.info_bar_top.addWidget(self.stats_label, 1)
 
-        self.calculate_board = calculateBoard.calculateBoard()
-
 
         # Game board
         self.btns = [SquareButton() for _ in range(42)]
@@ -69,13 +67,16 @@ class player(QMainWindow):
         
         
         self.show()
+        self.controller=game.gameController(self)
         
     
     def initGame(self):
+        
         self.control_msg, self.turn, self.newestPieceIndex, self.playerIs = 0,0,-1,0
         self.board = "0" * 42
+        #self.calculate_board = calculateBoard.calculateBoard() for testing
         
-        self.controller=game.gameController(self)
+        
         
     
     def resizeEvent(self, event):
@@ -118,7 +119,9 @@ class player(QMainWindow):
             button_size = self.btns[i].size()
             icon_size = QSize(int(button_size.height() * 0.75), int(button_size.height() * 0.75))
             try:
-                if self.newestPieceIndex != -1:
+                if self.newestPieceIndex == -1:
+                    self.btns[i].setStyleSheet("")
+                else:
                     if i == self.newestPieceIndex:
                         self.btns[i].setStyleSheet("background-color: green")
                     else:
@@ -144,7 +147,7 @@ class player(QMainWindow):
         elif self.playerIs == "2":
             img_path = os.path.join(".", "assets", "YellowCircle.png")
 
-        if self.turn == self.playerIs:
+        if self.turn == int(self.playerIs):
             turn_text = "Your Turn"
         else:
             turn_text = "Opponent's Turn"
@@ -154,7 +157,6 @@ class player(QMainWindow):
     
     def reset_game_box(self, win_text):
         # TODO 
-        # button functionality
 
         # popup after game completion
         msg_box = QMessageBox(self)
@@ -188,12 +190,13 @@ class player(QMainWindow):
         msg_box.setText(win_text + "\nNew game?")
         msg_box.exec()
 
-
         if msg_box.clickedButton() == play_again_button:
             print("Play Again clicked!")
             # Add functionality here
             if self.controller.newConnection(False): #opretter en ny forbindelse til den gamle adresse
                 self.initGame()
+                self.update_board()
+                self.info_label.setText("FOUR! in one Row\n(or Diagonal(or Column))")
                 msg_box.close()
             else:
                 msg_box.setText("Server no longer exists (。﹏。*)")
@@ -201,7 +204,9 @@ class player(QMainWindow):
         elif msg_box.clickedButton() == new_game_button:
             #print("New Game clicked!")
             self.initGame()
+            self.update_board()
             self.controller.newGame()
+            self.info_label.setText("FOUR! in one Row\n(or Diagonal(or Column))")
             msg_box.close()
             
         elif msg_box.clickedButton() == quit_button:

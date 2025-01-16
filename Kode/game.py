@@ -23,27 +23,36 @@ class gameController(QWidget):
         self.newGame()
     
     def receiveData(self, sender, receivedStr:str):
+        self.lines = receivedStr.split("\n\r")
         #print("Modtaget"+receivedStr+"!")
-        if "YOU ARE" in receivedStr:
-            self.p.playerIs = receivedStr[8] #should be either "1" or "2"
-            if self.popUpExists:
-                #print("forsøger at lukke popup")
-                self.closePopUpSignal.emit("")
-                #print("har lukket popUp")
+        print("har modtaget dette data", self.lines)
+        for i in range (len(self.lines)):
+            if "" == self.lines[0]:
+                self.lines.pop(0)
+            elif "YOU ARE" in self.lines[0]:
+                self.p.playerIs = self.lines[0][8] #should be either "1" or "2"
+                if self.popUpExists:
+                    #print("forsøger at lukke popup")
+                    self.closePopUpSignal.emit("")
+                    print (f"you are {self.p.playerIs}\n{receivedStr}")
+                    #print("har lukket popUp")
+                self.lines.pop(0)
+                
+            elif "@" in self.lines[0]:
+                self.lines.pop(0)
+                #modtaget serverens velkommen besked med ip 
+            else:
+                self.newServerDataSignal.emit(self.lines)
+                break
             
-        elif "@" in receivedStr:
-            pass
-            #modtaget serverens velkommen besked med ip 
-        else:
-            self.lines = receivedStr.split("\n\r")
-            self.newServerDataSignal.emit(self.lines)
-    def newConnection(self, adress:tuple|bool):
-        if adress:
-            self.adress = adress
+    def newConnection(self, address:tuple|bool):
+        if address:
+            self.address = address
         try:
             socket = s.socket(s.AF_INET, s.SOCK_STREAM)
-            socket.connect(adress)
+            socket.connect(self.address)
             self.setpCon(connection.connection(socket, self.receiveData))
+            print("new connection from player to "+ str(self.address))
             return True
         except:
             self.setpCon("")
@@ -143,7 +152,11 @@ class startPopUp(QWidget):
             self.label.setText("The server at the chosen IP dosen't exist")
             #print("dosent exist")  
 
-    
+    def closeEvent(self, a0 = 0):
+        if self.p.popUpExists:
+            self.p.p.closeEvent()
+        
+        
     def closeMe(self):
         self.p.popUpExists=False
         #self.close()

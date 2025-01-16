@@ -1,0 +1,33 @@
+@startuml
+class gameController {
+    receiveData()
+    newConnection()
+    newGame()
+    closePopUp()
+    closeMe()
+    createServer()
+    send()
+    setpCon()
+        p
+    localServerExists
+    lines
+    adress
+    popUp
+    popUpExists
+    server
+    localServerExists
+    pCon
+    __init__()
+}
+class startPopUp {
+    hostHandler()
+    joinHandler()
+    closeMe()
+        p
+    label
+    txtEditor
+    __init__()
+}
+QWidget <|-- gameController
+QWidget <|-- startPopUp
+@enduml
