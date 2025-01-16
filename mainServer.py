@@ -5,6 +5,7 @@ import server #importer player fra kode mappen
 from PyQt6.QtWidgets import *
 
 if __name__ == "__main__":
+    '''
     while True:
         try:
             port = input("Hvilken port mellem 49152 og 65535 skal serveren bruge?\nTryk enter for 54321\n")
@@ -16,8 +17,9 @@ if __name__ == "__main__":
                 break
         except:
             pass
+    '''
         
-            
+    port = 54321        
     server = server.host(port)
     print("Fire på stribe hostes nu på "+str(server.myIP)+":"+str(port))
     while True:
