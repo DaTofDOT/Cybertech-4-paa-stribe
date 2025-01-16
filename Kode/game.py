@@ -14,6 +14,7 @@ class gameController(QWidget):
     '''
     newServerDataSignal = pyqtSignal(list)
     closePopUpSignal = pyqtSignal(str)
+    joinPopUpSignal = pyqtSignal(str)
     def __init__(self, p):
         super().__init__()
         self.p=p
@@ -25,7 +26,7 @@ class gameController(QWidget):
     def receiveData(self, sender, receivedStr:str):
         self.lines = receivedStr.split("\n\r")
         #print("Modtaget"+receivedStr+"!")
-        print("har modtaget dette data", self.lines)
+        #print("har modtaget dette data", self.lines)
         for i in range (len(self.lines)):
             if "" == self.lines[0]:
                 self.lines.pop(0)
@@ -44,6 +45,9 @@ class gameController(QWidget):
             else:
                 self.newServerDataSignal.emit(self.lines)
                 break
+    
+    def pConClosed(self, sender):
+        self.receiveData(self, "NOBODY WINS\n\r"+"1"+"\n\r"+self.p.board+"\n\r-1")
             
     def newConnection(self, address:tuple|bool):
         if address:
@@ -51,18 +55,34 @@ class gameController(QWidget):
         try:
             socket = s.socket(s.AF_INET, s.SOCK_STREAM)
             socket.connect(self.address)
-            self.setpCon(connection.connection(socket, self.receiveData))
+            self.setpCon(connection.connection(socket, self.receiveData, self.pConClosed))
             print("new connection from player to "+ str(self.address))
             return True
         except:
             self.setpCon("")
             return False
+    
+    
+    
             
-    def newGame(self):
-        self.popUp = startPopUp(self)
+    def newGame(self, tryJoiningAddress = False):
+        if tryJoiningAddress:
+            self.popUp = startPopUp(self, self.address)
+            if self.localServerExists:
+                self.joinPopUpSignal.connect(self.popUp.hostHandler)
+            else:
+                self.joinPopUpSignal.connect(self.popUp.joinHandler)
+        else:
+            self.popUp = startPopUp(self)
+        
         self.popUp.show()
+        
         self.popUpExists = True
-        self.pCon, self.lines = "", []    
+        self.pCon, self.lines = "", []
+        
+        if tryJoiningAddress:
+            self.joinPopUpSignal.emit("")
+        
     
     def closePopUp(self):
         if self.popUpExists:
@@ -90,7 +110,7 @@ class gameController(QWidget):
         self.pCon = var
 
 class startPopUp(QWidget):
-    def __init__(self, p:gameController):
+    def __init__(self, p:gameController, address = False):
         self.p=p
         super().__init__()
         #central = QWidget(self)
@@ -102,6 +122,8 @@ class startPopUp(QWidget):
         self.label=QLabel()
         self.label.setText("Select button")
         self.txtEditor = QTextEdit()
+        if address:
+            self.txtEditor.setText(str(address[0]))
         self.txtEditor.setFixedHeight(50)
         self.bHost, self.bJoin = QPushButton(), QPushButton()
         self.bHost.clicked.connect(self.hostHandler)
@@ -141,14 +163,9 @@ class startPopUp(QWidget):
             else:
                 self.label.setText("Already connected to local server, awaiting player 2")
                 
-                
-            
-        
-        
-        
 
 
-    def joinHandler(self):
+    def joinHandler(self, a0=0):
         if self.p.localServerExists:
             self.label.setText("Closing local server")
             self.p.server.closeMe()

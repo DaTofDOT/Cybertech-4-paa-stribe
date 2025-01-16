@@ -71,7 +71,6 @@ class player(QMainWindow):
         
     
     def initGame(self):
-        
         self.control_msg, self.turn, self.newestPieceIndex, self.playerIs = 0,0,-1,0
         self.board = "0" * 42
         #self.calculate_board = calculateBoard.calculateBoard() for testing
@@ -192,26 +191,20 @@ class player(QMainWindow):
 
         if msg_box.clickedButton() == play_again_button:
             #print("Play Again clicked!")
-            # Add functionality here
-            if self.controller.newConnection(False): #opretter en ny forbindelse til den gamle adresse
-                self.initGame()
-                self.update_board()
-                self.info_label.setText("FOUR! in one Row\n(or Diagonal(or Column))")
-                msg_box.close()
-            else:
-                msg_box.setText("Server no longer exists (。﹏。*)")
-                
-        elif msg_box.clickedButton() == new_game_button:
-            #print("New Game clicked!")
             self.initGame()
             self.update_board()
-            self.controller.newGame()
             self.info_label.setText("FOUR! in one Row\n(or Diagonal(or Column))")
-            msg_box.close()
+            self.controller.newGame(True)
+                
+        elif msg_box.clickedButton() == new_game_button:
+            
+            self.initGame()
+            self.update_board()
+            self.controller.newGame(False)
+            self.info_label.setText("FOUR! in one Row\n(or Diagonal(or Column))")
+            
             
         elif msg_box.clickedButton() == quit_button:
-            #print("Quit clicked!")
-            msg_box.close()
             self.closeEvent()
 
 
